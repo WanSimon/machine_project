@@ -1,0 +1,9 @@
+rootProject.name = 'vendor'
+include ':rn-app-upgrade'
+project(':rn-app-upgrade').projectDir = new File(rootProject.projectDir, '../node_modules/rn-app-upgrade/android')
+include ':@react-native-picker_picker'
+project(':@react-native-picker_picker').projectDir = new File(rootProject.projectDir, '../node_modules/@react-native-picker/picker/android')
+include ':react-native-sound'
+project(':react-native-sound').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-sound/android')
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+include ':app'
