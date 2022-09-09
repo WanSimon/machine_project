@@ -1,113 +1,146 @@
-import Conf from '../js/conf'
-import {NativeModules} from "react-native";
-import { getSign } from '../js/utils';
+import Conf from '../js/conf';
+import {NativeModules} from 'react-native';
+import {getSign} from '../js/utils';
 
 const router = {
   //heartbeat:'/xy.server/req_heartbeat',
-  heartbeat:'/equipment/heartbeat',
+  heartbeat: '/equipment/heartbeat',
   //getEquipmentInfo:'/xy.server/req_get_equipment_info',
-  getEquipmentInfo:'/equipment/getEquipmentInfo',
-  getEquipmentDetail:'/equipment/getEquipmentInfoDetail',
+  getEquipmentInfo: '/equipment/getEquipmentInfo',
+  getEquipmentDetail: '/equipment/getEquipmentInfoDetail',
   //submitOrder:'/xy.server/req_submit_order',
-  submitOrder:'/ceorder/submitOrder',
+  submitOrder: '/ceorder/submitOrder',
   //pay:'/xy.server/req_pay',
   //pay:'/pay/toPay',
-  pay:'/ceorder/pay',
+  pay: '/ceorder/pay',
   //getPayStatus:'/xy.server/req_get_pay_status',
   //getPayStatus:'/xy.server/req_get_pay_status',
-  getPayStatus:'/ceorder/getPayStatus',
+  getPayStatus: '/ceorder/getPayStatus',
   //getOrderInfo:'/xy.server/req_get_order_info',
-  getOrderInfo:'/ceorder/getOrderInfo',
+  getOrderInfo: '/ceorder/getOrderInfo',
   //updateEquipmentProduct:'/xy.server/req_equipment_product_changed',
-  updateEquipmentProduct:'/inventory/updateEStock',
-  uploadApiLog:'/merchant/uploadAppLog',
-  getEquipmentProductByCode:'/equipment/getEProductByCode',
-  updateOrderStatus:'/ceorder/updateOrderStatus',
+  updateEquipmentProduct: '/inventory/updateEStock',
+  uploadApiLog: '/merchant/uploadAppLog',
+  getEquipmentProductByCode: '/equipment/getEProductByCode',
+  updateOrderStatus: '/ceorder/updateOrderStatus',
   getUpgradeInfo: '/equipment/getAppVersionRefreshInfo',
   ignoreUpgrade: '/equipment/ignoreRefresh',
 };
 
-const ignoreRouter = [
-  '/equipment/heartbeat'
-];
+const ignoreRouter = ['/equipment/heartbeat'];
 
-class CloudApi{
+class CloudApi {
   constructor() {
     this.url = Conf.cloudUrl;
     this.token = Conf.token;
   }
 
-  async _request(method,route,data){
+  async _request(method, route, data) {
     let options = {
       //请求方式
       method,
       //请求头定义
       headers: {
-        "Authorization": "Bearer " + this.token,
+        Authorization: 'Bearer ' + this.token,
         'Content-Type': 'application/json; charset=utf-8',
-        "loginType": 1 //设备登录
-      }
+        loginType: 1, //设备登录
+      },
     };
     data = data || {};
-    if('post' == method.toLowerCase()){
+    if (method.toLowerCase() == 'post') {
       data.sig = getSign(data, Conf.sign);
       data.appId = Conf.sign.appId;
     }
     options.body = JSON.stringify(data);
 
-    if(!ignoreRouter.includes(route)){
-      NativeModules.RaioApi.debug({msg: `request route ${route}, send data = ${JSON.stringify(options.body)}`}, null);
+    if (!ignoreRouter.includes(route)) {
+      NativeModules.RaioApi.debug(
+        {
+          msg: `request route ${route}, send data = ${JSON.stringify(
+            options.body,
+          )}`,
+        },
+        null,
+      );
       console.debug(`request route ${route}, send data ${options.body}`);
     }
 
-    return new Promise( async (resolve, reject)=>{
+    return new Promise(async (resolve, reject) => {
       let timer = setTimeout(() => {
-        if(!ignoreRouter.includes(route)){
-          NativeModules.RaioApi.debug({msg: `response route ${route} timeout`}, null);
+        if (!ignoreRouter.includes(route)) {
+          NativeModules.RaioApi.debug(
+            {msg: `response route ${route} timeout`},
+            null,
+          );
           console.debug(`response route ${route} timeout`);
         }
         reject(new Error('timeout'));
       }, 10000);
-      try{
+      try {
         let res = await fetch(this.url + route, options);
         clearTimeout(timer);
-        if(res.status >= 200 && res.status < 500){
+        if (res.status >= 200 && res.status < 500) {
           let resObj = await res.json();
           //console.debug(`response route ${route} success, data=${JSON.stringify(resObj)}`);
-          if(!resObj){
-            if(!ignoreRouter.includes(route)){
-              NativeModules.RaioApi.debug({msg: `response route ${route} no response`}, null);
+          if (!resObj) {
+            if (!ignoreRouter.includes(route)) {
+              NativeModules.RaioApi.debug(
+                {msg: `response route ${route} no response`},
+                null,
+              );
               console.info(`response route ${route} no response`);
             }
             reject(new Error('no response'));
           } else {
-            if(resObj.code && resObj.code != 1000){
+            if (resObj.code && resObj.code != 1000) {
               let msg = resObj.msg || 'unknown error';
-              if(!ignoreRouter.includes(route)){
-                NativeModules.RaioApi.debug({msg: `response route ${route} error, ${msg}`}, null);
+              if (!ignoreRouter.includes(route)) {
+                NativeModules.RaioApi.debug(
+                  {msg: `response route ${route} error, ${msg}`},
+                  null,
+                );
                 console.info(`response route ${route} error2, ${msg}`);
               }
-              reject (new Error(msg));
+              reject(new Error(msg));
             } else {
-              if(!ignoreRouter.includes(route)){
-                NativeModules.RaioApi.debug({msg: `response route ${route} success, data=${JSON.stringify(resObj.data)}`}, null);
-                console.debug(`response route ${route} success, data=${JSON.stringify(resObj.data)}`);
+              if (!ignoreRouter.includes(route)) {
+                NativeModules.RaioApi.debug(
+                  {
+                    msg: `response route ${route} success, data=${JSON.stringify(
+                      resObj.data,
+                    )}`,
+                  },
+                  null,
+                );
+                console.debug(
+                  `response route ${route} success, data=${JSON.stringify(
+                    resObj.data,
+                  )}`,
+                );
               }
               resolve(resObj.data);
             }
           }
-        }else{
+        } else {
           const error = new Error(res.statusText);
           error.response = res;
-          if(!ignoreRouter.includes(route)){
-            NativeModules.RaioApi.debug({msg: `response route ${route} error`}, null);
-            console.info(`response route ${route} error1 ${JSON.stringify(res)}`);
+          if (!ignoreRouter.includes(route)) {
+            NativeModules.RaioApi.debug(
+              {msg: `response route ${route} error`},
+              null,
+            );
+            console.info(
+              `response route ${route} error1 ${JSON.stringify(res)}`,
+            );
           }
           reject(error);
         }
-      }catch (e) {
-        if(!ignoreRouter.includes(route)){
-          NativeModules.RaioApi.debug({msg: `response route ${route} error, ${e.message}`}, null);
+      } catch (e) {
+        if (!ignoreRouter.includes(route)) {
+          NativeModules.RaioApi.debug(
+            {msg: `response route ${route} error, ${e.message}`},
+            null,
+          );
           console.info(`response route ${route} error3 ${e.message}`);
         }
         reject(e);
@@ -115,47 +148,62 @@ class CloudApi{
     });
   }
 
-  async heartbeat(equipment_id, temperature, humidity, status){
-    console.log("hearbeat starting.");
-    console.debug("input<->equipment_id=%s,temperature=%f,humidity=%f", equipment_id, temperature, humidity);
-    if (!equipment_id){
-      console.info("hearbeat failed, equipment_id is empty!");
+  async heartbeat(equipment_id, temperature, humidity, status) {
+    console.log('hearbeat starting.');
+    console.debug(
+      'input<->equipment_id=%s,temperature=%f,humidity=%f',
+      equipment_id,
+      temperature,
+      humidity,
+    );
+    if (!equipment_id) {
+      console.info('hearbeat failed, equipment_id is empty!');
       return null;
     }
     let res = null;
     try {
-      res = await this._request('POST',router.heartbeat,{equipment_id, temperature, humidity});
-    }catch (e) {
+      res = await this._request('POST', router.heartbeat, {
+        equipment_id,
+        temperature,
+        humidity,
+      });
+    } catch (e) {
       console.info('request req_heartbeat crash!!err=%o', e);
     }
-    console.log("hearbeat finished");
+    console.log('hearbeat finished');
     return res;
   }
 
-  async getEquipmentInfo(equipment_id, mac){
-    console.log("getEquipmentInfo starting.");
-    console.debug("input<->equipment_id=%s,mac=%s", equipment_id, mac);
+  async getEquipmentInfo(equipment_id, mac) {
+    console.log('getEquipmentInfo starting.');
+    console.debug('input<->equipment_id=%s,mac=%s', equipment_id, mac);
     let res = null;
     try {
-      res = await this._request('POST',router.getEquipmentInfo,{equipment_id, mac});
-    }catch (e) {
+      res = await this._request('POST', router.getEquipmentInfo, {
+        equipment_id,
+        mac,
+      });
+    } catch (e) {
       console.info('request req_get_equipment_info crash!!err=%o', e.message);
     }
-    console.log("getEquipmentInfo finished");
+    console.log('getEquipmentInfo finished');
     return res;
   }
 
   //获取设备详情
-  async getEquipmentDetail(equipment_id, mac){
-    console.log("getEquipmentDetail starting.");
-    console.debug("input<->equipment_id=%s,mac=%s", equipment_id, mac);
+  async getEquipmentDetail(equipment_id, mac) {
+    console.log('getEquipmentDetail starting.');
+    console.debug('input<->equipment_id=%s,mac=%s', equipment_id, mac);
     let res = null;
     try {
-      res = await this._request('POST',router.getEquipmentDetail,{equipment_id, mac});
-    }catch (e) {
+      res = await this._request('POST', router.getEquipmentDetail, {
+        equipment_id,
+        mac,
+      });
+    } catch (e) {
       console.info('request getEquipmentDetail crash!!err=%o', e);
     }
-    console.log("getEquipmentDetail finished");
+    console.log('getEquipmentDetail finished');
     return res;
   }
 
@@ -201,52 +249,54 @@ class CloudApi{
 					"product_count:"90
 				}]
    * */
-  async submitOrder(orderInfo){
+  async submitOrder(orderInfo) {
     console.log('SubmitOrder starting.');
-    console.debug("input<->orderInfo:%s", orderInfo);
+    console.debug('input<->orderInfo:%s', orderInfo);
     let res = null;
     try {
-      res = await this._request('POST',router.submitOrder,{order_info:orderInfo});
-    }catch (e) {
+      res = await this._request('POST', router.submitOrder, {
+        order_info: orderInfo,
+      });
+    } catch (e) {
       console.info('request req_submit_order crash!!err=%o', e);
     }
     console.log('SubmitOrder finished');
     return res;
   }
 
-  async pay(payInfo){
+  async pay(payInfo) {
     console.log('pay starting.');
-    console.debug("input<->payInfo:%s", payInfo);
+    console.debug('input<->payInfo:%s', payInfo);
     let res = null;
     try {
-      res = await this._request('POST',router.pay,payInfo);
-    }catch (e) {
+      res = await this._request('POST', router.pay, payInfo);
+    } catch (e) {
       console.info('request pay crash!!err=%o', e);
     }
     console.log('pay finished');
     return res;
   }
 
-  async getPayStatus(trade_no){
+  async getPayStatus(trade_no) {
     console.log('getPayStatus starting.');
-    console.debug("input<->trade_no:%s", trade_no);
+    console.debug('input<->trade_no:%s', trade_no);
     let res = null;
     try {
-      res = await this._request('POST',router.getPayStatus,{trade_no});
-    }catch (e) {
+      res = await this._request('POST', router.getPayStatus, {trade_no});
+    } catch (e) {
       console.info('request getPayStatus crash!!err=%o', e);
     }
     console.log('getPayStatus finished');
     return res;
   }
 
-  async getOrderInfo(order_id){
+  async getOrderInfo(order_id) {
     console.log('getOrderInfo starting.');
-    console.debug("input<->order_id:%s", order_id);
+    console.debug('input<->order_id:%s', order_id);
     let res = null;
     try {
-      res = await this._request('POST',router.getOrderInfo,{order_id});
-    }catch (e) {
+      res = await this._request('POST', router.getOrderInfo, {order_id});
+    } catch (e) {
       console.info('request getOrderInfo crash!!err=%o', e);
     }
     console.log('getOrderInfo finished');
@@ -254,85 +304,101 @@ class CloudApi{
   }
 
   async updateEquipmentProduct(equipmentProductChangeInfo) {
-    console.log("updateEquipmentProduct starting.");
-    console.debug("input<->equipmentProductChangeInfo=%s", equipmentProductChangeInfo);
+    console.log('updateEquipmentProduct starting.');
+    console.debug(
+      'input<->equipmentProductChangeInfo=%s',
+      equipmentProductChangeInfo,
+    );
     let res = null;
     try {
-      res = await this._request('POST',router.updateEquipmentProduct,equipmentProductChangeInfo);
-    }catch (e){
+      res = await this._request(
+        'POST',
+        router.updateEquipmentProduct,
+        equipmentProductChangeInfo,
+      );
+    } catch (e) {
       console.info('request req_equipment_product_changed crash!!err=%o', e);
     }
-    console.log("updateEquipmentProduct finished");
+    console.log('updateEquipmentProduct finished');
     return res;
   }
 
   async uploadAppLog(logObj) {
-    console.log("uploadAppLog starting.");
-    console.debug("input<->logObj=%s", logObj);
+    console.log('uploadAppLog starting.');
+    console.debug('input<->logObj=%s', logObj);
     let res = null;
     try {
       res = this._request('POST', router.uploadApiLog, logObj);
-    }catch (e){
+    } catch (e) {
       console.info('request uploadAppLog crash!!err=%s', e);
     }
-    console.log("uploadAppLog finished");
+    console.log('uploadAppLog finished');
     return res;
   }
 
-  async getEquipmentProductByCode(equipment_id,pick_up_code){
-    console.log("getEquipmentProductByCode starting.");
-    console.debug("input<->equipment_id=%s,pick_up_code=%s", equipment_id,pick_up_code);
+  async getEquipmentProductByCode(equipment_id, pick_up_code) {
+    console.log('getEquipmentProductByCode starting.');
+    console.debug(
+      'input<->equipment_id=%s,pick_up_code=%s',
+      equipment_id,
+      pick_up_code,
+    );
     let res = null;
     try {
-      res = await this._request('POST', router.getEquipmentProductByCode, {equipment_id,pick_up_code});
-    }catch (e){
+      res = await this._request('POST', router.getEquipmentProductByCode, {
+        equipment_id,
+        pick_up_code,
+      });
+    } catch (e) {
       console.info('request getEquipmentProductByCode crash!!err=%o', e);
     }
-    console.log("getEquipmentProductByCode finished");
+    console.log('getEquipmentProductByCode finished');
     return res;
   }
 
-  async updateOrderStatus(order_id,status){
-    console.log("updateOrderStatus starting.");
-    console.debug("input<->order_id=%s,status=%d",order_id,status);
+  async updateOrderStatus(order_id, status) {
+    console.log('updateOrderStatus starting.');
+    console.debug('input<->order_id=%s,status=%d', order_id, status);
     let res = null;
     try {
-      res = await this._request('POST',router.updateOrderStatus,{order_id,status});
-      console.debug("res<->%s", res);
-    }catch (e) {
+      res = await this._request('POST', router.updateOrderStatus, {
+        order_id,
+        status,
+      });
+      console.debug('res<->%s', res);
+    } catch (e) {
       console.info('request updateOrderStatus crash!!err=%o', e);
     }
-    console.log("updateOrderStatus finished");
+    console.log('updateOrderStatus finished');
     return res;
   }
 
-  async getUpgradeInfo( obj ){
-    console.log("getUpgradeInfo starting.");
-    console.debug("input<->%o", obj);
+  async getUpgradeInfo(obj) {
+    console.log('getUpgradeInfo starting.');
+    console.debug('input<->%o', obj);
     let res = null;
     try {
       res = await this._request('POST', router.getUpgradeInfo, {...obj});
-    }catch (e){
+    } catch (e) {
       console.info('request updateOrderStatus crash!!err=%o', e);
     }
-    console.log("getUpgradeInfo finished");
-    return res;  
+    console.log('getUpgradeInfo finished');
+    return res;
   }
 
-  async ignoreUpgrade(obj){
-    console.log("ignoreUpgrade starting.");
-    console.debug("input<->%o", obj);
+  async ignoreUpgrade(obj) {
+    console.log('ignoreUpgrade starting.');
+    console.debug('input<->%o', obj);
     let res = null;
     try {
       await this._request('POST', router.ignoreUpgrade, {...obj});
       res = true;
-    }catch (e){
+    } catch (e) {
       console.info('request ignoreUpgrade crash!!err=%o', e);
     }
-    console.log("ignoreUpgrade finished");
-    return res;  
+    console.log('ignoreUpgrade finished');
+    return res;
   }
-
 }
 
 const API = new CloudApi();

@@ -1,25 +1,40 @@
-import React, { Component } from 'react';
-import { store } from '../store/store';
-import {clearCart, upgradeEquipmentInfo, upgradeStatusFlag} from '../action'
-import {Animated, Easing, ImageBackground, TouchableOpacity, View, Image, Text, BackHandler,Modal,StyleSheet,Alert,Button,TextInput, NativeModules} from 'react-native';
-import api from '../js/cloudApi'
-import {p2dHeight, p2dWidth, parseTime} from "../js/utils";
+import React, {Component} from 'react';
+import {store} from '../store/store';
+import {clearCart, upgradeEquipmentInfo, upgradeStatusFlag} from '../action';
+import {
+  Animated,
+  Easing,
+  ImageBackground,
+  TouchableOpacity,
+  View,
+  Image,
+  Text,
+  BackHandler,
+  Modal,
+  StyleSheet,
+  Alert,
+  Button,
+  TextInput,
+  NativeModules,
+} from 'react-native';
+import api from '../js/cloudApi';
+import {p2dHeight, p2dWidth, parseTime} from '../js/utils';
 
 import OperateModal from '../components/operator';
 import UpgradeModal from '../components/upgrade';
-import Conf from "../js/conf";
+import Conf from '../js/conf';
 
 class home extends Component {
   constructor() {
     super();
 
     this.state = {
-      equipmentInfo:{},
-      addr:'',
-      date:'',
-      no:'',
+      equipmentInfo: {},
+      addr: '',
+      date: '',
+      no: '',
       scaleValue: new Animated.Value(1),
-      upgradeData: {}
+      upgradeData: {},
     };
     this.clickTimer = null;
     this.clickIndex = 0;
@@ -27,19 +42,18 @@ class home extends Component {
     this.checkAppVersionTimer = null;
   }
 
-  async componentDidMount(){
-
+  async componentDidMount() {
     console.debug('go to page 【home】');
 
     let info = store.getState().equipmentInfo;
-    let addr = info.equipment_group_info.addr||'';
-    let date = parseTime(new Date(),'{y}-{m}-{d}  {h}:{i}');
-    let no = info.no||'';
-    this.setState({addr,date,no});
-    this.timer = setInterval(()=>{
-      let nowDate = parseTime(new Date(),'{y}-{m}-{d}  {h}:{i}');
-      this.setState({date:nowDate});
-    },60000);
+    let addr = info.equipment_group_info.addr || '';
+    let date = parseTime(new Date(), '{y}-{m}-{d}  {h}:{i}');
+    let no = info.no || '';
+    this.setState({addr, date, no});
+    this.timer = setInterval(() => {
+      let nowDate = parseTime(new Date(), '{y}-{m}-{d}  {h}:{i}');
+      this.setState({date: nowDate});
+    }, 60000);
 
     this.checkAppVersion(info.mac);
     this.startAnimation();
@@ -47,36 +61,38 @@ class home extends Component {
   //动画循环
   startAnimation() {
     Animated.sequence([
-      Animated.timing(
-        this.state.scaleValue,
-        {
-          toValue: 1.1,
-          duration: 800,
-          easing: Easing.ease,
-          useNativeDriver: true
-        }
-      ),
-      Animated.timing(
-        this.state.scaleValue,
-        {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.ease,
-          useNativeDriver: true
-        }
-      )
+      Animated.timing(this.state.scaleValue, {
+        toValue: 1.1,
+        duration: 800,
+        easing: Easing.ease,
+        useNativeDriver: true,
+      }),
+      Animated.timing(this.state.scaleValue, {
+        toValue: 1,
+        duration: 800,
+        easing: Easing.ease,
+        useNativeDriver: true,
+      }),
     ]).start(() => this.startAnimation());
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     console.debug('destroy page 【home】');
-    if(this.timer) clearInterval(this.timer);
-    if(this.clickTimer) clearTimeout(this.clickTimer);
-    if(this.checkAppVersionTimer) clearTimeout(this.checkAppVersionTimer);
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    if (this.clickTimer) {
+      clearTimeout(this.clickTimer);
+    }
+    if (this.checkAppVersionTimer) {
+      clearTimeout(this.checkAppVersionTimer);
+    }
   }
 
   addClickIndex() {
-    if (this.clickTimer) clearTimeout(this.clickTimer);
+    if (this.clickTimer) {
+      clearTimeout(this.clickTimer);
+    }
     this.clickIndex++;
     this.clickTimer = setTimeout(() => {
       this.clickIndex = 0;
@@ -88,53 +104,81 @@ class home extends Component {
     }
   }
 
-  backDesktop(){
+  backDesktop() {
     this.refs.opModal.showModal();
   }
 
-  confirmCallback(){
-    if(this.refs.opModal) this.refs.opModal.cancel();
+  confirmCallback() {
+    if (this.refs.opModal) {
+      this.refs.opModal.cancel();
+    }
     this.props.navigation.navigate('setting');
   }
 
-  async checkAppVersion(mac){
-    try{ 
-      NativeModules.RaioApi.debug({msg: 'home page check app version start', method: 'home.checkAppVersion'}, null);
-      let data = await api.getUpgradeInfo({ mac, app_version: Conf.appVersion });
-      NativeModules.RaioApi.debug({msg: `home page getUpgradeInfo success, data=${JSON.stringify(data)}`, method: 'home.checkAppVersion'}, null);
-      if(data && data.app_version_info){
-        if(data.app_version_info.refresh_version && (data.app_version_info.refresh_version != data.app_version_info.current_version)){
-          this.setState({upgradeData: data.app_version_info}); 
+  async checkAppVersion(mac) {
+    try {
+      NativeModules.RaioApi.debug(
+        {
+          msg: 'home page check app version start',
+          method: 'home.checkAppVersion',
+        },
+        null,
+      );
+      let data = await api.getUpgradeInfo({mac, app_version: Conf.appVersion});
+      NativeModules.RaioApi.debug(
+        {
+          msg: `home page getUpgradeInfo success, data=${JSON.stringify(data)}`,
+          method: 'home.checkAppVersion',
+        },
+        null,
+      );
+      if (data && data.app_version_info) {
+        if (
+          data.app_version_info.refresh_version &&
+          data.app_version_info.refresh_version !=
+            data.app_version_info.current_version
+        ) {
+          this.setState({upgradeData: data.app_version_info});
           this.refs.upModal.showModal();
         }
       }
-    }catch(e){
-      NativeModules.RaioApi.error({msg: `home page checkAppVersion error=${e.message}`, method: 'home.checkAppVersion'}, null);
+    } catch (e) {
+      NativeModules.RaioApi.error(
+        {
+          msg: `home page checkAppVersion error=${e.message}`,
+          method: 'home.checkAppVersion',
+        },
+        null,
+      );
     }
-    NativeModules.RaioApi.debug({msg: 'home page check app version end', method: 'home.checkAppVersion'}, null);
+    NativeModules.RaioApi.debug(
+      {msg: 'home page check app version end', method: 'home.checkAppVersion'},
+      null,
+    );
   }
 
   render() {
-    const styles={
-      textStyle:{
-        height:p2dHeight(45),
-        lineHeight:p2dHeight(45),
-        fontSize:p2dWidth(32),
-        fontWeight:'500',
-        color:'#fff'}
+    const styles = {
+      textStyle: {
+        height: p2dHeight(45),
+        lineHeight: p2dHeight(45),
+        fontSize: p2dWidth(32),
+        fontWeight: '500',
+        color: '#fff',
+      },
     };
     return (
       <ImageBackground
-        style={{width:'100%', height:'100%'}}
-        imageStyle={{ width:'100%', height:'100%'}}
+        style={{width: '100%', height: '100%'}}
+        imageStyle={{width: '100%', height: '100%'}}
         source={require('../assets/home2.png')}>
         <Image
           style={{
-            position:'absolute',
-            left:p2dWidth(20),
-            top:p2dHeight(24),
-            width:p2dWidth(50),
-            height:p2dHeight(50)
+            position: 'absolute',
+            left: p2dWidth(20),
+            top: p2dHeight(24),
+            width: p2dWidth(50),
+            height: p2dHeight(50),
           }}
           source={require('../assets/location.png')}
         />
@@ -142,193 +186,244 @@ class home extends Component {
         <Text
           numberOfLines={1}
           style={{
-            position:'absolute',
-            left:p2dWidth(72),
-            top:p2dHeight(27),
-            right:p2dWidth(400),
-            ...styles.textStyle
-          }}
-        >{this.state.addr}</Text>
-        <Text
-          style={{
-            position:'absolute',
-            right:p2dWidth(20),
-            top:p2dHeight(27),
-            ...styles.textStyle
-          }}
-        >{this.state.date}</Text>
-        <Text
-          style={{
-            width:'100%',
-            position:'absolute',
-            textAlign:'center',
-            top:p2dHeight(324),
-            height:p2dHeight(112),
-            lineHeight:p2dHeight(112),
-            fontSize:p2dWidth(80),
-            fontWeight:'bold',
-            color:'#fff',
-            letterSpacing:p2dWidth(8)
-          }}
-        >欢迎使用自助药房</Text>
-        <Text
-          style={{
-            position:'absolute',
-            width:'100%',
-            textAlign:'center',
-            top:p2dHeight(454),
+            position: 'absolute',
+            left: p2dWidth(72),
+            top: p2dHeight(27),
+            right: p2dWidth(400),
             ...styles.textStyle,
-            color: '#F9F9F9'
-          }}
-        >Welcome to the Self-service Pharmacy</Text>
+          }}>
+          {this.state.addr}
+        </Text>
+        <Text
+          style={{
+            position: 'absolute',
+            right: p2dWidth(20),
+            top: p2dHeight(27),
+            ...styles.textStyle,
+          }}>
+          {this.state.date}
+        </Text>
+        <Text
+          style={{
+            width: '100%',
+            position: 'absolute',
+            textAlign: 'center',
+            top: p2dHeight(324),
+            height: p2dHeight(112),
+            lineHeight: p2dHeight(112),
+            fontSize: p2dWidth(80),
+            fontWeight: 'bold',
+            color: '#fff',
+            letterSpacing: p2dWidth(8),
+          }}>
+          欢迎使用自助药房
+        </Text>
+        <Text
+          style={{
+            position: 'absolute',
+            width: '100%',
+            textAlign: 'center',
+            top: p2dHeight(454),
+            ...styles.textStyle,
+            color: '#F9F9F9',
+          }}>
+          Welcome to the Self-service Pharmacy
+        </Text>
 
         <TouchableOpacity
           style={{
-            position:'absolute',
-            left:p2dWidth(140),
-            bottom:p2dHeight(930),
-            width:p2dWidth(360),
-            height:p2dHeight(360),
-          }} onPress={()=>this.props.navigation.navigate('list')}>
+            position: 'absolute',
+            left: p2dWidth(350),
+            bottom: p2dHeight(930),
+            width: p2dWidth(360),
+            height: p2dHeight(360),
+          }}
+          onPress={() => this.props.navigation.navigate('list')}>
           <Animated.View
             style={{
-              width:p2dWidth(360),
-              height:p2dWidth(360),
-              transform:[
-                {scale: this.state.scaleValue}
-              ]
-            }}
-          >
+              width: p2dWidth(360),
+              height: p2dWidth(360),
+              transform: [{scale: this.state.scaleValue}],
+            }}>
             <Image
               style={{
-                width:p2dWidth(360),
-                height:p2dWidth(360),
+                width: p2dWidth(360),
+                height: p2dWidth(360),
               }}
               source={require('../assets/buyBtn.png')}
             />
           </Animated.View>
         </TouchableOpacity>
 
-
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={{
-            position:'absolute',
-            right:p2dWidth(140),
-            bottom:p2dHeight(930),
-            width:p2dWidth(360),
-            height:p2dHeight(360),
-          }} onPress={()=>this.props.navigation.navigate('code')}>
+            position: 'absolute',
+            right: p2dWidth(140),
+            bottom: p2dHeight(930),
+            width: p2dWidth(360),
+            height: p2dHeight(360),
+          }}
+          onPress={() => this.props.navigation.navigate('code')}>
           <Animated.View
             style={{
-              width:p2dWidth(360),
-              height:p2dWidth(360),
-              transform:[
-                {scale: this.state.scaleValue}
-              ]
-            }}
-          >
+              width: p2dWidth(360),
+              height: p2dWidth(360),
+              transform: [{scale: this.state.scaleValue}],
+            }}>
             <Image
               style={{
-                width:p2dWidth(360),
-                height:p2dWidth(360),
+                width: p2dWidth(360),
+                height: p2dWidth(360),
               }}
               source={require('../assets/codeBtn.png')}
             />
           </Animated.View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
-        <View style={customStyle.mtContainer}>
+        {/* <View style={customStyle.mtContainer}>
           <View style={customStyle.mtHeader}>
             <View style={customStyle.mtLogo}>
-              <Image style={{width: '100%', height: '100%'}} source={require('../assets/mt_logo.png')}></Image>
+              <Image
+                style={{width: '100%', height: '100%'}}
+                source={require('../assets/mt_logo.png')}
+              />
             </View>
             <Text style={customStyle.mtTitle}>骑手取药流程</Text>
           </View>
-          <ImageBackground style={{  marginTop: p2dHeight(44) }}  source={require('../assets/mt_bg.png')}>
+          <ImageBackground
+            style={{marginTop: p2dHeight(44)}}
+            source={require('../assets/mt_bg.png')}>
             <View style={customStyle.mtContent}>
-              <View style={customStyle.mtLeft}></View>
-              <View style={customStyle.mtRight}></View>
+              <View style={customStyle.mtLeft} />
+              <View style={customStyle.mtRight} />
               <View style={customStyle.mtStep}>
                 <View style={customStyle.mtItem}>
                   <View style={customStyle.mtCircle}>
-                    <Text style={{fontSize: p2dWidth(36), lineHeight: p2dWidth(42), fontWeight: 'bold', color: '#FF9E00',}}>1</Text>
+                    <Text
+                      style={{
+                        fontSize: p2dWidth(36),
+                        lineHeight: p2dWidth(42),
+                        fontWeight: 'bold',
+                        color: '#FF9E00',
+                      }}>
+                      1
+                    </Text>
                   </View>
                   <View style={{display: 'flex', flexDirection: 'row'}}>
                     <Text style={customStyle.mtStepText}>点击“</Text>
-                    <Text style={[customStyle.mtStepText, customStyle.mtStepText2]}>凭码取药</Text>
+                    <Text
+                      style={[customStyle.mtStepText, customStyle.mtStepText2]}>
+                      凭码取药
+                    </Text>
                     <Text style={customStyle.mtStepText}>”</Text>
                   </View>
                 </View>
                 <View style={customStyle.mtItem}>
                   <View style={customStyle.mtCircle}>
-                    <Text style={{fontSize: p2dWidth(36), lineHeight: p2dWidth(42), fontWeight: 'bold', color: '#FF9E00',}}>2</Text>
+                    <Text
+                      style={{
+                        fontSize: p2dWidth(36),
+                        lineHeight: p2dWidth(42),
+                        fontWeight: 'bold',
+                        color: '#FF9E00',
+                      }}>
+                      2
+                    </Text>
                   </View>
                   <View>
                     <View style={{display: 'flex', flexDirection: 'row'}}>
                       <Text style={customStyle.mtStepText}>输入取药码</Text>
-                      <Text style={customStyle.mtStepText1}>(订单号后六位)</Text>
+                      <Text style={customStyle.mtStepText1}>
+                        (订单号后六位)
+                      </Text>
                     </View>
-                    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end'}}>
-                      <Text style={customStyle.mtStepText3}>示例:114581610093</Text>
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'flex-end',
+                      }}>
+                      <Text style={customStyle.mtStepText3}>
+                        示例:114581610093
+                      </Text>
                       <Text style={customStyle.mtStepText4}>123456</Text>
                     </View>
                   </View>
                 </View>
                 <View style={customStyle.mtItem}>
                   <View style={customStyle.mtCircle}>
-                    <Text style={{fontSize: p2dWidth(36), lineHeight: p2dWidth(42), fontWeight: 'bold', color: '#FF9E00',}}>3</Text>
+                    <Text
+                      style={{
+                        fontSize: p2dWidth(36),
+                        lineHeight: p2dWidth(42),
+                        fontWeight: 'bold',
+                        color: '#FF9E00',
+                      }}>
+                      3
+                    </Text>
                   </View>
                   <Text style={customStyle.mtStepText}>等待出药</Text>
                 </View>
                 <View style={customStyle.mtItem}>
                   <View style={customStyle.mtCircle}>
-                    <Text style={{fontSize: p2dWidth(36), lineHeight: p2dWidth(42), fontWeight: 'bold', color: '#FF9E00',}}>4</Text>
+                    <Text
+                      style={{
+                        fontSize: p2dWidth(36),
+                        lineHeight: p2dWidth(42),
+                        fontWeight: 'bold',
+                        color: '#FF9E00',
+                      }}>
+                      4
+                    </Text>
                   </View>
                   <Text style={customStyle.mtStepText}>核对小票信息</Text>
                 </View>
               </View>
             </View>
           </ImageBackground>
-        </View>
+        </View> */}
 
         <Text
           style={{
-            position:'absolute',
-            width:'100%',
-            left:p2dWidth(20),
-            bottom:p2dHeight(25),
-            height:p2dHeight(33),
-            lineHeight:p2dHeight(33),
-            fontSize:p2dWidth(24),
-            fontWeight:'500',
-            color:'#fff'
-          }}
-        >设备编码：{this.state.no}</Text>
+            position: 'absolute',
+            width: '100%',
+            left: p2dWidth(20),
+            bottom: p2dHeight(25),
+            height: p2dHeight(33),
+            lineHeight: p2dHeight(33),
+            fontSize: p2dWidth(24),
+            fontWeight: '500',
+            color: '#fff',
+          }}>
+          设备编码：{this.state.no}
+        </Text>
         <Image
           style={{
-            position:'absolute',
-            left:p2dWidth(636),
-            bottom:p2dHeight(76),
-            width:p2dWidth(344),
-            height:p2dWidth(719),
+            position: 'absolute',
+            left: p2dWidth(636),
+            bottom: p2dHeight(76),
+            width: p2dWidth(344),
+            height: p2dWidth(719),
           }}
           source={require('../assets/people1.png')}
         />
         <TouchableOpacity
           style={{
-            position:'absolute',
-            bottom:p2dHeight(670),
-            right:p2dWidth(170),
-            width:p2dWidth(100),
+            position: 'absolute',
+            bottom: p2dHeight(670),
+            right: p2dWidth(170),
+            width: p2dWidth(100),
             height: p2dWidth(100),
           }}
-          onPress ={()=>this.addClickIndex()}
+          onPress={() => this.addClickIndex()}
         />
 
-        <OperateModal ref="opModal" callback={this.confirmCallback.bind(this)} />
+        <OperateModal
+          ref="opModal"
+          callback={this.confirmCallback.bind(this)}
+        />
         <UpgradeModal ref="upModal" upgradeData={this.state.upgradeData} />
       </ImageBackground>
-
     );
   }
 }
@@ -341,7 +436,7 @@ const customStyle = StyleSheet.create({
     width: p2dWidth(460),
     height: p2dHeight(667),
   },
-  mtHeader:{
+  mtHeader: {
     width: p2dWidth(460),
     height: p2dHeight(130),
     backgroundColor: '#FFFFFF',
@@ -357,7 +452,7 @@ const customStyle = StyleSheet.create({
     width: p2dHeight(63),
     height: p2dWidth(50),
   },
-  mtTitle:{
+  mtTitle: {
     fontSize: p2dWidth(42),
     fontWeight: '800',
     color: '#333333',
@@ -378,7 +473,7 @@ const customStyle = StyleSheet.create({
     width: p2dWidth(16),
     height: p2dWidth(75),
     backgroundColor: '#FFFFFF',
-    borderRadius: p2dWidth(11)
+    borderRadius: p2dWidth(11),
   },
   mtRight: {
     position: 'absolute',
@@ -387,7 +482,7 @@ const customStyle = StyleSheet.create({
     width: p2dWidth(16),
     height: p2dWidth(75),
     backgroundColor: '#FFFFFF',
-    borderRadius: p2dWidth(11)
+    borderRadius: p2dWidth(11),
   },
   mtCenter: {
     position: 'absolute',
@@ -410,7 +505,7 @@ const customStyle = StyleSheet.create({
   mtItem: {
     display: 'flex',
     width: '100%',
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   mtCircle: {
     width: p2dWidth(42),

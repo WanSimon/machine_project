@@ -2,12 +2,11 @@
  * @format
  */
 import {name as appName} from './app.json';
-import { AppRegistry, StatusBar,UIManager } from 'react-native';
-import React, { Component } from 'react';
+import {AppRegistry, StatusBar, UIManager} from 'react-native';
+import React, {Component} from 'react';
 import {Provider} from 'react-redux';
-import{ store } from './src/store/store'
+import {store} from './src/store/store';
 import App from './App';
-
 
 export default class Root extends Component {
   render() {
@@ -19,7 +18,6 @@ export default class Root extends Component {
       </Provider>
     );
   }
-};
+}
 
 AppRegistry.registerComponent(appName, () => Root);
-

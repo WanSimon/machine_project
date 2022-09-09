@@ -1,95 +1,96 @@
-import {ActionType} from '../action/index'
+import {ActionType} from '../action/index';
 
 const initialState = {
-  equipmentInfo:{
-  },
+  equipmentInfo: {},
   //取药状态 true:取消中 false:非取药中
-  pickupStatus:false,
+  pickupStatus: false,
   //设备状态码
-  statusFlag:'',
+  statusFlag: '',
   //购物车数据
-  cart:{
-    cartList:{},
-    productNum:0,
-    totalPrice:0,
-    totalCustomerPrice:0
+  cart: {
+    cartList: {},
+    productNum: 0,
+    totalPrice: 0,
+    totalCustomerPrice: 0,
   },
   //是否为会员
-  customerFlag:false,
+  customerFlag: false,
   //订单数据
-  orderInfo:{},
+  orderInfo: {},
 
   //取药码订单
-  codeOrder:{
-    cartList:{},
-    orderInfo:{},
-    productNum:0
-  }
+  codeOrder: {
+    cartList: {},
+    orderInfo: {},
+    productNum: 0,
+  },
 };
 
 let homeReducer = (state = initialState, action) => {
-  if(action.payload === undefined) return state;
-  if(action.type === ActionType.ACTION_UPGRADE_EQUIPMENT_INFO){
+  if (action.payload === undefined) {
+    return state;
+  }
+  if (action.type === ActionType.ACTION_UPGRADE_EQUIPMENT_INFO) {
     return {
       ...state,
-      equipmentInfo:action.payload
-    }
+      equipmentInfo: action.payload,
+    };
   }
-  if(action.type === ActionType.ACTION_UPGRADE_PICKUP_STATUS){
+  if (action.type === ActionType.ACTION_UPGRADE_PICKUP_STATUS) {
     return {
       ...state,
-      pickupStatus: action.payload
-    }
+      pickupStatus: action.payload,
+    };
   }
-  if(action.type === ActionType.ACTION_UPGRADE_STATUS_FLAG){
+  if (action.type === ActionType.ACTION_UPGRADE_STATUS_FLAG) {
     return {
       ...state,
-      statusFlag: action.payload
-    }
+      statusFlag: action.payload,
+    };
   }
-  if(action.type === ActionType.ACTION_UPGRADE_CART){
+  if (action.type === ActionType.ACTION_UPGRADE_CART) {
     return {
       ...state,
-      cart: action.payload
-    }
+      cart: action.payload,
+    };
   }
-  if(action.type === ActionType.ACTION_CLEAR_CART){
+  if (action.type === ActionType.ACTION_CLEAR_CART) {
     return {
       ...state,
       cart: {
-        cartList:{},
-        productNum:0,
-        totalPrice:0,
-        totalCustomerPrice:0
+        cartList: {},
+        productNum: 0,
+        totalPrice: 0,
+        totalCustomerPrice: 0,
       },
       orderInfo: {},
-      customerFlag:false,
-      codeOrder:{
-        cartList:{},
-        orderInfo:{},
-        productNum:0
-      }
-    }
+      customerFlag: false,
+      codeOrder: {
+        cartList: {},
+        orderInfo: {},
+        productNum: 0,
+      },
+    };
   }
-  if(action.type === ActionType.ACTION_ADD_CUSTOMER){
+  if (action.type === ActionType.ACTION_ADD_CUSTOMER) {
     return {
       ...state,
-      customerFlag: true
-    }
-  }
-
-  if(action.type === ActionType.ACTION_UPGRADE_ORDER){
-    return {
-      ...state,
-      orderInfo: action.payload
-    }
+      customerFlag: true,
+    };
   }
 
-  if(action.type === ActionType.ACTION_UPGRADE_CODE_ORDER){
+  if (action.type === ActionType.ACTION_UPGRADE_ORDER) {
     return {
       ...state,
-      codeOrder: action.payload
-    }
+      orderInfo: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPGRADE_CODE_ORDER) {
+    return {
+      ...state,
+      codeOrder: action.payload,
+    };
   }
 };
 
