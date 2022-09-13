@@ -1,8 +1,11 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
 import {Text, View, Image, TouchableOpacity} from 'react-native';
 
 import {p2dHeight, p2dWidth, parseCent} from '../js/utils';
+import store from '../store/store';
 
+import api from '../js/cloudApi';
 class BottomBar extends Component {
   constructor(props) {
     super(props);
@@ -10,6 +13,25 @@ class BottomBar extends Component {
   }
   componentDidMount() {}
   componentWillUnmount() {}
+
+  async submitOrder() {
+    alert('11111');
+    if (this.props.productNum > 0) {
+      const sceneStr = store.getState().sceneStr;
+      if (sceneStr.length < 0) {
+        //跳转至登录页面
+        this.props.navigation.navigate('login');
+      } else {
+        let res = await api.getUserInfo(sceneStr);
+        if (res.status === 200) {
+          this.props.goOrder();
+        } else {
+          this.props.navigation.navigate('login');
+        }
+        //sceneStr进行校验
+      }
+    }
+  }
 
   render() {
     return (
@@ -104,11 +126,7 @@ class BottomBar extends Component {
               color: '#FFFFFF',
               fontSize: p2dWidth(36),
             }}
-            onPress={() => {
-              if (this.props.productNum > 0) {
-                this.props.goOrder();
-              }
-            }}>
+            onPress={() => this.submitOrder}>
             提交订单
           </Text>
         </View>

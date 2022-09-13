@@ -24,6 +24,9 @@ const initialState = {
     orderInfo: {},
     productNum: 0,
   },
+
+  //场景标识，发送给后端判断用户是否登录。
+  sceneStr: '',
 };
 
 let homeReducer = (state = initialState, action) => {
@@ -90,6 +93,13 @@ let homeReducer = (state = initialState, action) => {
     return {
       ...state,
       codeOrder: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_SCENE_STR) {
+    return {
+      ...state,
+      sceneStr: action.payload,
     };
   }
 };

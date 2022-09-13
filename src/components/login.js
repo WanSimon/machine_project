@@ -2,13 +2,34 @@ import React, {Component} from 'react';
 import {Text, View, Image, ScrollView, TouchableOpacity} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import {p2dHeight, p2dWidth} from '../js/utils';
-
+import api, {WeiXinAPI} from '../js/cloudApi';
+import {updateSceneStr} from '../action';
+import {store} from '../store/store';
 class login extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      qrcode: '',
+    };
   }
-  componentDidMount() {}
+
+  async componentDidMount() {
+    let res = await api.getQrCode();
+    let weixinQrcode = await WeiXinAPI.getWeiXinQrcode(res.ticket); //获取二维码
+    this.setState({qrcode: weixinQrcode});
+    const action = updateSceneStr(res.sceneStr);
+    store.dispatch(action);
+    let resUserInfo;
+
+    let t = window.setTimeout(() => {
+      resUserInfo = api.getUserInfo(res.sceneStr);
+    }, 2000);
+
+    if (resUserInfo.status === 200) {
+      window.clearTimeout(t);
+      this.props.navigation.navigate('customerOrder');
+    }
+  }
 
   render() {
     return (
@@ -33,7 +54,7 @@ class login extends Component {
               backgroundColor: '#fff',
               borderRadius: p2dWidth(40),
             }}>
-            <Text
+            {/* <Text
               style={{
                 position: 'absolute',
                 width: '100%',
@@ -44,19 +65,8 @@ class login extends Component {
                 top: p2dHeight(80),
               }}>
               会员注册/登录
-            </Text>
-            <View
-              style={{
-                position: 'absolute',
-                right: p2dWidth(153),
-                top: p2dHeight(179),
-                width: p2dWidth(274),
-                height: p2dHeight(274),
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-              <QRCode size={p2dWidth(274)} value={this.props.qrcode} />
-            </View>
+            </Text> */}
+
             <Text
               style={{
                 position: 'absolute',
@@ -69,7 +79,30 @@ class login extends Component {
               }}>
               微信扫描二维码
             </Text>
-            <Text
+
+            <View
+              style={{
+                position: 'absolute',
+                right: p2dWidth(153),
+                top: p2dHeight(179),
+                width: p2dWidth(274),
+                height: p2dHeight(274),
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              {/* <QRCode size={p2dWidth(274)} value={this.state.qrcode} /> */}
+              <Image
+                style={{
+                  height: p2dHeight(274),
+                  width: p2dWidth(274),
+                }}
+                source={{
+                  uri: this.state.qrcode,
+                }}
+              />
+            </View>
+
+            {/* <Text
               style={{
                 position: 'absolute',
                 width: '100%',
@@ -81,7 +114,7 @@ class login extends Component {
               }}
               onPress={() => this.props.hideLogin()}>
               跳过 直接支付 >>
-            </Text>
+            </Text> */}
           </View>
         </View>
       </View>

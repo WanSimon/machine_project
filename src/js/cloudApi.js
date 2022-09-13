@@ -25,6 +25,8 @@ const router = {
   updateOrderStatus: '/ceorder/updateOrderStatus',
   getUpgradeInfo: '/equipment/getAppVersionRefreshInfo',
   ignoreUpgrade: '/equipment/ignoreRefresh',
+  getQrCode: '/user/login/qrcode',
+  getUserInfo: '/user/info',
 };
 
 const ignoreRouter = ['/equipment/heartbeat'];
@@ -171,6 +173,27 @@ class CloudApi {
       console.info('request req_heartbeat crash!!err=%o', e);
     }
     console.log('hearbeat finished');
+    return res;
+  }
+
+  async getQrCode() {
+    let res = null;
+
+    try {
+      res = await this._request('GET', router.getQrCode);
+    } catch (e) {
+      console.info('Get Qrcode error');
+    }
+    return res;
+  }
+
+  async getUserInfo(sceneStr) {
+    let res = null;
+    try {
+      res = await this._request('POST', router.getUserInfo, {sceneStr});
+    } catch (e) {
+      console.info('Get user info error');
+    }
     return res;
   }
 
@@ -401,6 +424,135 @@ class CloudApi {
   }
 }
 
+class WeiXinApi {
+  constructor() {
+    this.url = Conf.weixinUrl;
+  }
+
+  async _request(method, route, data) {
+    let options = {
+      //请求方式
+      method,
+      //请求头定义
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    };
+    data = data || {};
+    if (method.toLowerCase() == 'post') {
+      data.sig = getSign(data, Conf.sign);
+      data.appId = Conf.sign.appId;
+    }
+    options.body = JSON.stringify(data);
+
+    if (!ignoreRouter.includes(route)) {
+      NativeModules.RaioApi.debug(
+        {
+          msg: `request route ${route}, send data = ${JSON.stringify(
+            options.body,
+          )}`,
+        },
+        null,
+      );
+      console.debug(`request route ${route}, send data ${options.body}`);
+    }
+
+    return new Promise(async (resolve, reject) => {
+      let timer = setTimeout(() => {
+        if (!ignoreRouter.includes(route)) {
+          NativeModules.RaioApi.debug(
+            {msg: `response route ${route} timeout`},
+            null,
+          );
+          console.debug(`response route ${route} timeout`);
+        }
+        reject(new Error('timeout'));
+      }, 10000);
+      try {
+        let res = await fetch(this.url + route, options);
+        clearTimeout(timer);
+        if (res.status >= 200 && res.status < 500) {
+          let resObj = await res.json();
+          //console.debug(`response route ${route} success, data=${JSON.stringify(resObj)}`);
+          if (!resObj) {
+            if (!ignoreRouter.includes(route)) {
+              NativeModules.RaioApi.debug(
+                {msg: `response route ${route} no response`},
+                null,
+              );
+              console.info(`response route ${route} no response`);
+            }
+            reject(new Error('no response'));
+          } else {
+            if (resObj.code && resObj.code != 1000) {
+              let msg = resObj.msg || 'unknown error';
+              if (!ignoreRouter.includes(route)) {
+                NativeModules.RaioApi.debug(
+                  {msg: `response route ${route} error, ${msg}`},
+                  null,
+                );
+                console.info(`response route ${route} error2, ${msg}`);
+              }
+              reject(new Error(msg));
+            } else {
+              if (!ignoreRouter.includes(route)) {
+                NativeModules.RaioApi.debug(
+                  {
+                    msg: `response route ${route} success, data=${JSON.stringify(
+                      resObj.data,
+                    )}`,
+                  },
+                  null,
+                );
+                console.debug(
+                  `response route ${route} success, data=${JSON.stringify(
+                    resObj.data,
+                  )}`,
+                );
+              }
+              resolve(resObj.data);
+            }
+          }
+        } else {
+          const error = new Error(res.statusText);
+          error.response = res;
+          if (!ignoreRouter.includes(route)) {
+            NativeModules.RaioApi.debug(
+              {msg: `response route ${route} error`},
+              null,
+            );
+            console.info(
+              `response route ${route} error1 ${JSON.stringify(res)}`,
+            );
+          }
+          reject(error);
+        }
+      } catch (e) {
+        if (!ignoreRouter.includes(route)) {
+          NativeModules.RaioApi.debug(
+            {msg: `response route ${route} error, ${e.message}`},
+            null,
+          );
+          console.info(`response route ${route} error3 ${e.message}`);
+        }
+        reject(e);
+      }
+    });
+  }
+
+  async getWeiXinQrcode(ticket) {
+    let res = null;
+    try {
+      res = await this._request('POST', ticket);
+    } catch (e) {
+      console.info('request ignoreUpgrade crash!!err=%o', e);
+    }
+    return res;
+  }
+}
+
 const API = new CloudApi();
+
+export const WeiXinAPI = new WeiXinApi();
 
 export default API;
