@@ -12,7 +12,7 @@ import TopBar from '../components/topbar';
 import {p2dHeight, p2dWidth, parseCent} from '../js/utils';
 import QRCode from 'react-native-qrcode-svg';
 import {store} from '../store/store';
-import Login from '../components/login';
+import Login from './login';
 import api from '../js/cloudApi';
 import {
   OrderStatus,
@@ -36,7 +36,7 @@ class order extends Component {
       wechat_pay_url: '',
       payMode: 'wechat',
       totalPrice: 0,
-      totalCustomerPrice: 0,
+      // totalCustomerPrice: 0,
       loginVisible: false,
       //订单内部编码
       trade_no: '',
@@ -59,7 +59,7 @@ class order extends Component {
     let cart = store.getState().cart;
     this.setState({
       totalPrice: cart.totalPrice,
-      totalCustomerPrice: cart.totalCustomerPrice,
+      // totalCustomerPrice: cart.totalCustomerPrice,
     });
 
     let orderInfo = store.getState().orderInfo;
@@ -97,7 +97,7 @@ class order extends Component {
     //生成订单
     await this.submitOrder(orderInfo);
     //检测是否注册成会员
-    this.checkCustomer(orderInfo.id);
+    // this.checkCustomer(orderInfo.id);
     //生成支付信息
     await this.switchPay(orderInfo.inner_order_no);
     //获取订单状态
@@ -181,11 +181,11 @@ class order extends Component {
 
     if (orderInfo && orderInfo.customer_id) {
       //seven: 更新redux中orderInfo的customer_id
-      order.customer_id = orderInfo.customer_id;
+      // order.customer_id = orderInfo.customer_id;
       let action = upgradeOrder(order);
       store.dispatch(action);
       //已注册成会员
-      this.registerCustomer();
+      // this.registerCustomer();
     } else {
       // 加个index 防止定时器取消不掉
       if (this.checkCustomerTimer) {
@@ -301,11 +301,11 @@ class order extends Component {
     //this.registerCustomer();
   }
 
-  registerCustomer() {
-    const action = addCustomer();
-    store.dispatch(action);
-    this.props.navigation.replace('customerOrder');
-  }
+  // registerCustomer() {
+  //   const action = addCustomer();
+  //   store.dispatch(action);
+  //   this.props.navigation.replace('customerOrder');
+  // }
 
   hideLogin() {
     this.setState({loginVisible: false});
@@ -361,7 +361,7 @@ class order extends Component {
               }}
               source={require('../assets/huiyuan.png')}
             />
-            <Text
+            {/* <Text
               style={{
                 fontWeight: '400',
                 color: '#BB7D4E',
@@ -370,7 +370,7 @@ class order extends Component {
                 fontSize: p2dWidth(32),
               }}>
               免费开通会员享受专属优惠
-            </Text>
+            </Text> */}
 
             <TouchableOpacity
               style={{
@@ -486,7 +486,7 @@ class order extends Component {
               }}
               source={require('../assets/huiyuan.png')}
             />
-            <Text
+            {/* <Text
               style={{
                 position: 'absolute',
                 top: p2dHeight(77),
@@ -497,7 +497,7 @@ class order extends Component {
                 letterSpacing: p2dWidth(1),
               }}>
               会员价：¥{parseCent(this.state.totalCustomerPrice)}
-            </Text>
+            </Text> */}
           </View>
         </View>
         <View

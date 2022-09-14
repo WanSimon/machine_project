@@ -15,6 +15,7 @@ import End from './src/pages/end';
 import CustomerOrder from './src/pages/customerOrder';
 import Fail from './src/pages/fail';
 import Setting from './src/pages/setting';
+import Login from './src/pages/login';
 // import Profile from './src/pages/profile';
 
 import {createStackNavigator} from 'react-navigation-stack';
@@ -34,10 +35,11 @@ const AppNavigator = createStackNavigator(
     wait: {screen: Wait, navigationOptions: {headerShown: false}},
     end: {screen: End, navigationOptions: {headerShown: false}},
     fail: {screen: Fail, navigationOptions: {headerShown: false}},
-    customerOrder: {
-      screen: CustomerOrder,
-      navigationOptions: {headerShown: false},
-    },
+    login: {screen: Login, navigationOptions: {headerShown: false}},
+    // customerOrder: {
+    //   screen: CustomerOrder,
+    //   navigationOptions: {headerShown: false},
+    // },
     setting: {screen: Setting, navigationOptions: {headerShown: false}},
     // profile: {screen: Profile, navigationOptions: {headerShown: false}},
   },

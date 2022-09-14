@@ -3,7 +3,6 @@ import {
   Text,
   View,
   Image,
-  ListView,
   ScrollView,
   TouchableOpacity,
   ImageBackground,
@@ -50,7 +49,7 @@ class Content extends Component {
           name: product.merchant_product_info.product_info.name,
           home_thumb: product.merchant_product_info.product_info.home_thumb,
           price: product.merchant_product_info.price,
-          customer_price: product.merchant_product_info.customer_price,
+          // customer_price: product.merchant_product_info.customer_price,
           specification:
             product.merchant_product_info.product_info.specification,
           product_id: product.merchant_product_info.product_info.id,
@@ -168,23 +167,28 @@ class Content extends Component {
             position: 'absolute',
             height: '100%',
             width: '100%',
-            marginLeft: 10,
-            marginRight: 10,
+            // marginLeft: '5%',
+            // width: '95%',
             display: 'flex',
             flexDirection: 'column',
+            backgroundColor: 'yellow',
           }}>
           <View
             style={{
               display: 'flex',
               flexDirection: 'row',
               flexWrap: 'wrap',
-              justifyContent: 'space-between',
+              justifyContent: 'space-evenly',
               marginRight: p2dWidth(30),
+              backgroundColor: 'grey',
+              // borderWidth: '2',
+              // borderStyle: 'solid',
+              // borderColor: 'green',
             }}>
             {this.props.dragArr.map((item) => (
               <View
                 style={{
-                  width: '50%',
+                  width: '44%',
                   height: p2dHeight(230),
                   marginBottom: p2dHeight(20),
                   float: 'left',

@@ -27,7 +27,7 @@ class list extends Component {
       cartList: {},
       productNum: 0,
       totalPrice: 0,
-      totalCustomerPrice: 0,
+      // totalCustomerPrice: 0,
       searchText: '',
       allDrag: [],
       dragArr: [],
@@ -53,11 +53,11 @@ class list extends Component {
       cartList: cart.cartList,
       productNum: cart.productNum,
       totalPrice: cart.totalPrice,
-      totalCustomerPrice: cart.totalCustomerPrice,
+      // totalCustomerPrice: cart.totalCustomerPrice,
       allDrag,
       dragArr: allDrag,
     });
-
+    alert(store.getState().sceneStr);
     loadSound(require('../assets/mp3/chooseProduct.mp3'));
   }
 
@@ -67,24 +67,24 @@ class list extends Component {
   //点击购物车图标
   setCartList(cartList) {
     let productNum = 0,
-      totalPrice = 0,
-      totalCustomerPrice = 0;
+      totalPrice = 0;
+    // totalCustomerPrice = 0;
     for (let key in cartList) {
       productNum += cartList[key].num;
       totalPrice += cartList[key].num * cartList[key].price;
-      totalCustomerPrice += cartList[key].num * cartList[key].customer_price;
+      // totalCustomerPrice += cartList[key].num * cartList[key].customer_price;
     }
     this.setState({
       cartList: cartList,
       productNum,
       totalPrice,
-      totalCustomerPrice,
+      // totalCustomerPrice,
     });
     let action = upgradeCart({
       cartList: cartList,
       productNum,
       totalPrice,
-      totalCustomerPrice,
+      // totalCustomerPrice,
     });
     store.dispatch(action);
   }
@@ -160,15 +160,15 @@ class list extends Component {
     //生成订单
     this.generateOrder();
 
-    let customerFlag = store.getState().customerFlag;
+    // let customerFlag = store.getState().customerFlag;
     //会员
-    if (customerFlag) {
-      this.props.navigation.navigate('customerOrder');
-    }
+    // if (customerFlag) {
+    // this.props.navigation.navigate('customerOrder');
+    // }
     //非会员
-    else {
-      this.props.navigation.navigate('order');
-    }
+    // else {
+    this.props.navigation.navigate('order');
+    // }
   }
 
   //生成订单
@@ -177,7 +177,7 @@ class list extends Component {
     let cart = store.getState().cart;
     this.setState({
       totalPrice: cart.totalPrice,
-      totalCustomerPrice: cart.totalCustomerPrice,
+      // totalCustomerPrice: cart.totalCustomerPrice,
     });
 
     let order_detail_info_list = [];
@@ -189,9 +189,9 @@ class list extends Component {
       let obj = {
         merchant_product_id: key,
         amount: p.price * p.num,
-        customer_amount: p.customer_price * p.num,
+        // customer_amount: p.customer_price * p.num,
         unit_price: p.price,
-        customer_price: p.customer_price,
+        // customer_price: p.customer_price,
         product_count: p.num,
       };
       order_detail_info_list.push(obj);
@@ -218,12 +218,12 @@ class list extends Component {
     orderInfo.merchant_id = equipmentInfo.equipment_group_info.merchant_id;
     orderInfo.equipment_id = equipmentInfo.id;
     orderInfo.amount = cart.totalPrice;
-    orderInfo.customer_amount = cart.totalCustomerPrice;
+    // orderInfo.customer_amount = cart.totalCustomerPrice;
     orderInfo.order_status = OrderStatus.OS_NoPay;
     orderInfo.pay_status = PayStatus.PS_NoPay;
     orderInfo.buy_way = BuyWay.BW_Buy;
     orderInfo.order_source = OrderSource.OSRC_Equipment;
-    orderInfo.customer_id = '';
+    // orderInfo.customer_id = '';
     orderInfo.pick_up_type = PickUpType.PUP_Scan_QRCode;
     orderInfo.id_card = '';
     orderInfo.medical_insurance_card = '';
@@ -272,7 +272,7 @@ class list extends Component {
           navigate={this.props.navigation.navigate}
           productNum={this.state.productNum}
           totalPrice={this.state.totalPrice}
-          totalCustomerPrice={this.state.totalCustomerPrice}
+          // totalCustomerPrice={this.state.totalCustomerPrice}
           goOrder={() => this.goOrder()}
           setCartVisible={this.setCartVisible.bind(this)}
         />

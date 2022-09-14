@@ -1,6 +1,7 @@
 import Conf from '../js/conf';
 import {NativeModules} from 'react-native';
 import {getSign} from '../js/utils';
+import {store} from '../store/store';
 
 const router = {
   //heartbeat:'/xy.server/req_heartbeat',
@@ -27,6 +28,7 @@ const router = {
   ignoreUpgrade: '/equipment/ignoreRefresh',
   getQrCode: '/user/login/qrcode',
   getUserInfo: '/user/info',
+  getToken: '/tonsil/auth/authenticate',
 };
 
 const ignoreRouter = ['/equipment/heartbeat'];
@@ -34,7 +36,7 @@ const ignoreRouter = ['/equipment/heartbeat'];
 class CloudApi {
   constructor() {
     this.url = Conf.cloudUrl;
-    this.token = Conf.token;
+    this.token = store.getState().token;
   }
 
   async _request(method, route, data) {
@@ -420,6 +422,17 @@ class CloudApi {
       console.info('request ignoreUpgrade crash!!err=%o', e);
     }
     console.log('ignoreUpgrade finished');
+    return res;
+  }
+
+  async getToken(obj) {
+    let res = null;
+    try {
+      console.log('getToken11');
+      res = await this._request('POST', router.getToken, {...obj});
+    } catch (e) {
+      console.log('Get error');
+    }
     return res;
   }
 }

@@ -15,10 +15,9 @@ class BottomBar extends Component {
   componentWillUnmount() {}
 
   async submitOrder() {
-    alert('11111');
     if (this.props.productNum > 0) {
-      const sceneStr = store.getState().sceneStr;
-      if (sceneStr.length < 0) {
+      let sceneStr = store.getState().sceneStr;
+      if (sceneStr.length <= 0) {
         //跳转至登录页面
         this.props.navigation.navigate('login');
       } else {
@@ -126,7 +125,7 @@ class BottomBar extends Component {
               color: '#FFFFFF',
               fontSize: p2dWidth(36),
             }}
-            onPress={() => this.submitOrder}>
+            onPress={() => this.submitOrder()}>
             提交订单
           </Text>
         </View>

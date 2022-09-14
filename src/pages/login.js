@@ -5,6 +5,7 @@ import {p2dHeight, p2dWidth} from '../js/utils';
 import api, {WeiXinAPI} from '../js/cloudApi';
 import {updateSceneStr} from '../action';
 import {store} from '../store/store';
+import TopBar from '../components/topbar';
 class login extends Component {
   constructor(props) {
     super(props);
@@ -39,6 +40,11 @@ class login extends Component {
           width: '100%',
           height: '100%',
         }}>
+        <TopBar
+          hideBack={true}
+          pageName="微信登录"
+          navigation={this.props.navigation}
+        />
         <View
           style={{
             width: '100%',
@@ -47,6 +53,18 @@ class login extends Component {
             alignItems: 'center',
             backgroundColor: 'rgba(0, 0, 0, 0.6)',
           }}>
+          <Text
+            style={{
+              position: 'absolute',
+              width: '100%',
+              textAlign: 'center',
+              fontWeight: '600',
+              color: '#333333',
+              fontSize: p2dWidth(80),
+              top: p2dHeight(200),
+            }}>
+            微信扫码登录
+          </Text>
           <View
             style={{
               width: p2dWidth(580),
@@ -77,7 +95,7 @@ class login extends Component {
                 fontSize: p2dWidth(24),
                 top: p2dHeight(493),
               }}>
-              微信扫描二维码
+              扫码后点击确定，即可成功登录。
             </Text>
 
             <View

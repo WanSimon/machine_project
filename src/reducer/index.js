@@ -11,10 +11,10 @@ const initialState = {
     cartList: {},
     productNum: 0,
     totalPrice: 0,
-    totalCustomerPrice: 0,
+    // totalCustomerPrice: 0,
   },
   //是否为会员
-  customerFlag: false,
+  // customerFlag: true,
   //订单数据
   orderInfo: {},
 
@@ -25,8 +25,9 @@ const initialState = {
     productNum: 0,
   },
 
+  token: '',
   //场景标识，发送给后端判断用户是否登录。
-  sceneStr: '',
+  sceneStr: '123',
 };
 
 let homeReducer = (state = initialState, action) => {
@@ -64,10 +65,10 @@ let homeReducer = (state = initialState, action) => {
         cartList: {},
         productNum: 0,
         totalPrice: 0,
-        totalCustomerPrice: 0,
+        // totalCustomerPrice: 0,
       },
       orderInfo: {},
-      customerFlag: false,
+      // customerFlag: false,
       codeOrder: {
         cartList: {},
         orderInfo: {},
@@ -75,12 +76,12 @@ let homeReducer = (state = initialState, action) => {
       },
     };
   }
-  if (action.type === ActionType.ACTION_ADD_CUSTOMER) {
-    return {
-      ...state,
-      customerFlag: true,
-    };
-  }
+  // if (action.type === ActionType.ACTION_ADD_CUSTOMER) {
+  //   return {
+  //     ...state,
+  //     customerFlag: true,
+  //   };
+  // }
 
   if (action.type === ActionType.ACTION_UPGRADE_ORDER) {
     return {
@@ -100,6 +101,13 @@ let homeReducer = (state = initialState, action) => {
     return {
       ...state,
       sceneStr: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_TOKEN) {
+    return {
+      ...state,
+      token: action.token,
     };
   }
 };

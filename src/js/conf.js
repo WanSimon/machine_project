@@ -1,6 +1,7 @@
 const Conf = {
   //cloudUrl:'http://192.168.101.71:9000/api/v1',
-  cloudUrl: 'http://121.36.228.192:8080/api/v1',
+  // cloudUrl: 'http://121.36.228.192:8080/api/v1',
+  cloudUrl: 'http://192.168.101.71:15000/api/v1',
   weixinUrl: 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=',
   //token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfaWQiOiJlcXVpcG1lbnQiLCJpYXQiOjE1NzczNTA2NTcsImV4cCI6NDczMzExMDY1N30.07xHFbB3IUAAAlcZXHXxcwahcjPUG3u3tU0Cra_nk0w',
   token:

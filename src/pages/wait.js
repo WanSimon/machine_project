@@ -279,7 +279,7 @@ class wait extends Component {
     try {
       let cart = store.getState().cart;
       let info = store.getState().equipmentInfo;
-      let customerFlag = store.getState().customerFlag;
+      // let customerFlag = store.getState().customerFlag;
       let orderInfo = store.getState().orderInfo;
       console.info(
         'wait page func print_success get state orderInfo = %o',
@@ -341,9 +341,10 @@ class wait extends Component {
         obj = AddTextContent(content, 0, 0, 1, ticket_template_info_list);
         ticket_template_info_list.push(obj);
 
-        let unit_price = customerFlag
-          ? productInfo.customer_price
-          : productInfo.price;
+        // let unit_price = customerFlag
+        //   ? productInfo.customer_price
+        //   : productInfo.price;
+        let unit_price = productInfo.price;
         let price = (unit_price / 100).toFixed(2).toString();
         let count = productInfo.num.toString();
         let amount = ((unit_price * productInfo.num) / 100)
@@ -460,7 +461,7 @@ class wait extends Component {
 
     try {
       let info = store.getState().equipmentInfo;
-      let customerFlag = store.getState().customerFlag;
+      // let customerFlag = store.getState().customerFlag;
       let orderInfo = store.getState().orderInfo;
       console.info(
         'wait page func print_fail get state orderInfo = %o',
@@ -518,9 +519,10 @@ class wait extends Component {
         obj = AddTextContent(content, 0, 0, 1, ticket_template_info_list);
         ticket_template_info_list.push(obj);
 
-        let unit_price = customerFlag
-          ? productInfo.customer_price
-          : productInfo.price;
+        // let unit_price = customerFlag
+        //   ? productInfo.customer_price
+        //   : productInfo.price;
+        let unit_price = productInfo.price;
         let price = (unit_price / 100).toFixed(2).toString();
         let count = productInfo.num.toString();
         let amount = ((unit_price * productInfo.num) / 100)

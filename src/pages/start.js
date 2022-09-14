@@ -15,6 +15,7 @@ import {EquipmentStatus} from '../js/common';
 import {p2dHeight, p2dWidth} from '../js/utils';
 import OperateModal from '../components/operator';
 import Conf from '../js/conf';
+import {updateToken} from '../action/index';
 
 class start extends Component {
   constructor() {
@@ -43,6 +44,13 @@ class start extends Component {
         null,
       );
     }
+
+    try {
+      await this.setToken();
+    } catch (e) {
+      console.log('Set token error in start page');
+    }
+
     try {
       await this.retry();
     } catch (e) {
@@ -56,6 +64,15 @@ class start extends Component {
       );
     }
   }
+
+  async setToken() {
+    let res = await api.getToken({appId: '1', appSecret: '1'});
+    console.log(res, 'res.setToken');
+    const action = updateToken(res.data.token);
+    store.dispatch(action);
+    console.log(res, 'setToken-end');
+  }
+
   async retry() {
     if (this.retryTimer !== null) {
       clearTimeout(this.retryTimer);

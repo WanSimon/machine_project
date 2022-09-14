@@ -8,6 +8,7 @@ export const ActionType = {
   ACTION_UPGRADE_ORDER: 'action_upgrade_order',
   ACTION_UPGRADE_CODE_ORDER: 'action_upgrade_code_order',
   ACTION_UPDATE_SCENE_STR: 'action_update_scene_str',
+  ACTION_UPDATE_TOKEN: 'action_update_token',
 };
 
 //更新设备信息
@@ -85,12 +86,12 @@ export function clearCart() {
 }
 
 //添加会员标识
-export function addCustomer() {
-  return {
-    type: ActionType.ACTION_ADD_CUSTOMER,
-    payload: {},
-  };
-}
+// export function addCustomer() {
+//   return {
+//     type: ActionType.ACTION_ADD_CUSTOMER,
+//     payload: {},
+//   };
+// }
 
 //更新订单
 export function upgradeOrder(data) {
@@ -112,6 +113,14 @@ export function upgradeCodeOrder(data) {
 export function updateSceneStr(data) {
   return {
     type: ActionType.ACTION_UPDATE_SCENE_STR,
+    payload: data,
+  };
+}
+
+//更新token信息
+export function updateToken(data) {
+  return {
+    type: ActionType.ACTION_UPDATE_TOKEN,
     payload: data,
   };
 }
