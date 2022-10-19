@@ -10,25 +10,31 @@ const router = {
   getEquipmentInfo: '/equipment/getEquipmentInfo',
   getEquipmentDetail: '/equipment/getEquipmentInfoDetail',
   //submitOrder:'/xy.server/req_submit_order',
-  submitOrder: '/ceorder/submitOrder',
+  submitEOrder: '/order/submitEOrder',
   //pay:'/xy.server/req_pay',
   //pay:'/pay/toPay',
-  pay: '/ceorder/pay',
+  orderPay: '/order/orderPay',
   //getPayStatus:'/xy.server/req_get_pay_status',
   //getPayStatus:'/xy.server/req_get_pay_status',
-  getPayStatus: '/ceorder/getPayStatus',
+  getOrderPayStatus: '/order/getOrderPayStatus',
   //getOrderInfo:'/xy.server/req_get_order_info',
-  getOrderInfo: '/ceorder/getOrderInfo',
+  getOrderInfo: '/order/getOrderInfo',
   //updateEquipmentProduct:'/xy.server/req_equipment_product_changed',
-  updateEquipmentProduct: '/inventory/updateEStock',
+  updateEquipmentProduct: '/stock/updateEStock',
   uploadApiLog: '/merchant/uploadAppLog',
   getEquipmentProductByCode: '/equipment/getEProductByCode',
-  updateOrderStatus: '/ceorder/updateOrderStatus',
-  getUpgradeInfo: '/equipment/getAppVersionRefreshInfo',
+  updateOrderStatus: '/order/updateOrderStatus',
+  // getUpgradeInfo: '/equipment/getAppVersionRefreshInfo',
   ignoreUpgrade: '/equipment/ignoreRefresh',
-  getQrCode: '/user/login/qrcode',
-  getUserInfo: '/user/info',
-  getToken: '/tonsil/auth/authenticate',
+  getQrCode: '/auth/qrscan/getQrCode',
+  getToken: '/auth/authenticate',
+  checkQrLogin: '/auth/qrscan/checkQrLogin',
+  pwdLogin: '/auth/pwdLogin',
+  verifyCodeLogin: '/auth/verifyCodeLogin',
+  getPatientMemberInfoList: '/user/getPatientMemberInfoList',
+  getPatientRelateDoctorList: '/doctor/getPatientRelateDoctorList',
+  updateOrderPayType: '/order/updateOrderPayType',
+  getVerifyCode: '/auth/getVerifyCode',
 };
 
 const ignoreRouter = ['/equipment/heartbeat'];
@@ -36,7 +42,7 @@ const ignoreRouter = ['/equipment/heartbeat'];
 class CloudApi {
   constructor() {
     this.url = Conf.cloudUrl;
-    this.token = store.getState().token;
+    this.token = store.getState().token; //不能正常使用
   }
 
   async _request(method, route, data) {
@@ -45,15 +51,19 @@ class CloudApi {
       method,
       //请求头定义
       headers: {
-        Authorization: 'Bearer ' + this.token,
+        Authorization: 'Bearer ' + store.getState().token,
         'Content-Type': 'application/json; charset=utf-8',
         loginType: 1, //设备登录
       },
     };
+
     data = data || {};
     if (method.toLowerCase() == 'post') {
       data.sig = getSign(data, Conf.sign);
-      data.appId = Conf.sign.appId;
+      if (!data.appId) {
+        //在首次获取token的时候会传递appId不需要从config中获取
+        data.appId = Conf.sign.appId;
+      }
     }
     options.body = JSON.stringify(data);
 
@@ -85,7 +95,9 @@ class CloudApi {
         clearTimeout(timer);
         if (res.status >= 200 && res.status < 500) {
           let resObj = await res.json();
-          //console.debug(`response route ${route} success, data=${JSON.stringify(resObj)}`);
+          console.debug(
+            `response route ${route} success, data=${JSON.stringify(resObj)}`,
+          );
           if (!resObj) {
             if (!ignoreRouter.includes(route)) {
               NativeModules.RaioApi.debug(
@@ -152,29 +164,28 @@ class CloudApi {
     });
   }
 
-  async heartbeat(equipment_id, temperature, humidity, status) {
+  async heartbeat(equipmentId, temperature, humidity, status) {
     console.log('hearbeat starting.');
     console.debug(
-      'input<->equipment_id=%s,temperature=%f,humidity=%f',
-      equipment_id,
+      'input<->equipmentId=%s,temperature=%f,humidity=%f',
+      equipmentId,
       temperature,
       humidity,
     );
-    if (!equipment_id) {
-      console.info('hearbeat failed, equipment_id is empty!');
+    if (!equipmentId) {
+      console.info('hearbeat failed, equipmentId is empty!');
       return null;
     }
     let res = null;
     try {
       res = await this._request('POST', router.heartbeat, {
-        equipment_id,
+        equipmentId,
         temperature,
         humidity,
       });
     } catch (e) {
       console.info('request req_heartbeat crash!!err=%o', e);
     }
-    console.log('hearbeat finished');
     return res;
   }
 
@@ -182,30 +193,20 @@ class CloudApi {
     let res = null;
 
     try {
-      res = await this._request('GET', router.getQrCode);
+      res = await this._request('POST', router.getQrCode);
     } catch (e) {
-      console.info('Get Qrcode error');
+      console.info('Get Qrcode error, error  info is ', e);
     }
     return res;
   }
 
-  async getUserInfo(sceneStr) {
-    let res = null;
-    try {
-      res = await this._request('POST', router.getUserInfo, {sceneStr});
-    } catch (e) {
-      console.info('Get user info error');
-    }
-    return res;
-  }
-
-  async getEquipmentInfo(equipment_id, mac) {
+  async getEquipmentInfo(equipmentId, mac) {
     console.log('getEquipmentInfo starting.');
-    console.debug('input<->equipment_id=%s,mac=%s', equipment_id, mac);
+    console.debug('input<->equipmentId=%s,mac=%s', equipmentId, mac);
     let res = null;
     try {
       res = await this._request('POST', router.getEquipmentInfo, {
-        equipment_id,
+        equipmentId,
         mac,
       });
     } catch (e) {
@@ -216,13 +217,13 @@ class CloudApi {
   }
 
   //获取设备详情
-  async getEquipmentDetail(equipment_id, mac) {
+  async getEquipmentDetail(equipmentId, mac) {
     console.log('getEquipmentDetail starting.');
-    console.debug('input<->equipment_id=%s,mac=%s', equipment_id, mac);
+    console.debug('input<->equipment_id=%s,mac=%s', equipmentId, mac);
     let res = null;
     try {
       res = await this._request('POST', router.getEquipmentDetail, {
-        equipment_id,
+        equipmentId,
         mac,
       });
     } catch (e) {
@@ -239,7 +240,7 @@ class CloudApi {
    * @param outer_order_no 外部编号
    * @param serial_no 流水号
    * @param merchant_id 商户id
-   * @param equipment_id 设备id
+   * @param equipmentId 设备id
    * @param amount 金额
    * @param customer_amount 会员金额
    * @param pay_amount 实际支付金额
@@ -274,13 +275,13 @@ class CloudApi {
 					"product_count:"90
 				}]
    * */
-  async submitOrder(orderInfo) {
+  async submitEOrder(orderInfo) {
     console.log('SubmitOrder starting.');
     console.debug('input<->orderInfo:%s', orderInfo);
     let res = null;
     try {
-      res = await this._request('POST', router.submitOrder, {
-        order_info: orderInfo,
+      res = await this._request('POST', router.submitEOrder, {
+        ...orderInfo,
       });
     } catch (e) {
       console.info('request req_submit_order crash!!err=%o', e);
@@ -289,43 +290,43 @@ class CloudApi {
     return res;
   }
 
-  async pay(payInfo) {
-    console.log('pay starting.');
-    console.debug('input<->payInfo:%s', payInfo);
+  async orderPay(payInfo) {
+    console.log('orderPay starting.');
+    console.debug('input<->=orderPay :%s', payInfo);
     let res = null;
     try {
-      res = await this._request('POST', router.pay, payInfo);
+      res = await this._request('POST', router.orderPay, payInfo);
     } catch (e) {
-      console.info('request pay crash!!err=%o', e);
+      console.info('request orderPay crash!!err=%o', e);
     }
-    console.log('pay finished');
+    console.log('orderPay finished');
     return res;
   }
 
-  async getPayStatus(trade_no) {
-    console.log('getPayStatus starting.');
-    console.debug('input<->trade_no:%s', trade_no);
+  async getOrderPayStatus(tradeNo) {
+    console.log('getOrderPayStatus starting.');
+    console.debug('input<->trade_no:%s', tradeNo);
     let res = null;
     try {
-      res = await this._request('POST', router.getPayStatus, {trade_no});
+      res = await this._request('POST', router.getOrderPayStatus, tradeNo);
     } catch (e) {
-      console.info('request getPayStatus crash!!err=%o', e);
+      console.info('request getOrderPayStatus crash!!err=%o', e);
     }
-    console.log('getPayStatus finished');
+    console.log('getOrderPayStatus finished');
     return res;
   }
 
-  async getOrderInfo(order_id) {
+  async getOrderInfo(orderId) {
     console.log('getOrderInfo starting.');
-    console.debug('input<->order_id:%s', order_id);
+    console.debug('input<->order_id:%s', orderId);
     let res = null;
     try {
-      res = await this._request('POST', router.getOrderInfo, {order_id});
+      res = await this._request('POST', router.getOrderInfo, orderId);
     } catch (e) {
       console.info('request getOrderInfo crash!!err=%o', e);
     }
     console.log('getOrderInfo finished');
-    return res.order_info;
+    return res;
   }
 
   async updateEquipmentProduct(equipmentProductChangeInfo) {
@@ -361,17 +362,17 @@ class CloudApi {
     return res;
   }
 
-  async getEquipmentProductByCode(equipment_id, pick_up_code) {
+  async getEquipmentProductByCode(equipmentId, pick_up_code) {
     console.log('getEquipmentProductByCode starting.');
     console.debug(
-      'input<->equipment_id=%s,pick_up_code=%s',
-      equipment_id,
+      'input<->equipmentId=%s,pick_up_code=%s',
+      equipmentId,
       pick_up_code,
     );
     let res = null;
     try {
       res = await this._request('POST', router.getEquipmentProductByCode, {
-        equipment_id,
+        equipmentId,
         pick_up_code,
       });
     } catch (e) {
@@ -381,13 +382,13 @@ class CloudApi {
     return res;
   }
 
-  async updateOrderStatus(order_id, status) {
+  async updateOrderStatus(orderId, status) {
     console.log('updateOrderStatus starting.');
-    console.debug('input<->order_id=%s,status=%d', order_id, status);
+    console.debug('input<->orderId=%s,status=%d', orderId, status);
     let res = null;
     try {
       res = await this._request('POST', router.updateOrderStatus, {
-        order_id,
+        orderId,
         status,
       });
       console.debug('res<->%s', res);
@@ -395,19 +396,6 @@ class CloudApi {
       console.info('request updateOrderStatus crash!!err=%o', e);
     }
     console.log('updateOrderStatus finished');
-    return res;
-  }
-
-  async getUpgradeInfo(obj) {
-    console.log('getUpgradeInfo starting.');
-    console.debug('input<->%o', obj);
-    let res = null;
-    try {
-      res = await this._request('POST', router.getUpgradeInfo, {...obj});
-    } catch (e) {
-      console.info('request updateOrderStatus crash!!err=%o', e);
-    }
-    console.log('getUpgradeInfo finished');
     return res;
   }
 
@@ -428,11 +416,114 @@ class CloudApi {
   async getToken(obj) {
     let res = null;
     try {
-      console.log('getToken11');
       res = await this._request('POST', router.getToken, {...obj});
     } catch (e) {
-      console.log('Get error');
+      console.log('request get token carsh!!err=%o', e);
     }
+    console.log('getToken finished');
+    return res;
+  }
+
+  async checkQrLogin(obj) {
+    console.log('checkQrLogin staring.');
+    console.debug('input<->', obj);
+    let res = null;
+    try {
+      res = await this._request('POST', router.checkQrLogin, {...obj});
+    } catch (e) {
+      console.log('request checkQrLogin crash!! err = ', e);
+    }
+    console.log('checkQrLogin finished');
+    //接口返回的数据类型是
+    // {
+    //     "msg": "操作成功",
+    //     "code": 1000,
+    //     "data":
+    // }
+    // code:100 在request请求返回后被过滤了
+    return {code: 1000};
+  }
+
+  async pwdLogin(obj) {
+    console.log('pwdLogin starting.');
+    console.info('input<->', obj);
+    let res = null;
+    try {
+      res = await this._request('POST', router.pwdLogin, {...obj});
+    } catch (e) {
+      console.log('request pwdLogin crash!! err =', e);
+    }
+    console.info('pwdLogin finished');
+    return res;
+  }
+
+  async verifyCodeLogin(obj) {
+    console.log('verifyCodeLogin starting');
+    console.info('input<->', obj);
+    let res = null;
+    try {
+      res = await this._request('POST', router.verifyCodeLogin, {...obj});
+    } catch (e) {
+      console.log('request verifyCodeLogin crash!! err = ', e);
+    }
+    console.info('verifyCodeLogin finished');
+    return res;
+  }
+
+  async getPatientRelateDoctorList(obj) {
+    console.info('getPatientRelateDoctorList starting');
+    console.info('input<->', obj);
+    let res = null;
+    try {
+      res = await this._request('POST', router.getPatientRelateDoctorList, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request getPatientRelateDoctorList crash!! err=', e);
+    }
+    console.info('getPatientRelateDoctorList finished', res);
+    return res;
+  }
+
+  async getPatientMemberInfoList(obj) {
+    console.info('getPatientMemberInfoList starting');
+    console.info('getPatientMemberInfoList request input<->', obj);
+    let res = null;
+    try {
+      res = await this._request('POST', router.getPatientMemberInfoList, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request getPatientMemberInfoList');
+    }
+    console.info('getPatientMemberInfoList finished');
+    return res;
+  }
+
+  async updateOrderPayType(obj) {
+    console.info('updateOrderPayType');
+    console.info('input<->', obj);
+    let res = null;
+    try {
+      res = await this._request('POST', router.updateOrderPayType, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request updateOrderPayType error !! info =', e);
+    }
+    console.info('updateOrderPayType finished');
+    return res;
+  }
+
+  async getVerifyCode(mobile) {
+    console.info('getVerifyCode starting');
+    console.info('input<-->', mobile);
+    try {
+      res = await this._request('POST', router.getVerifyCode, mobile);
+    } catch (e) {
+      console.debug('request getVerifyCode error !! info =', e);
+    }
+    console.info('getVerifyCode finished');
     return res;
   }
 }
@@ -442,48 +533,10 @@ class WeiXinApi {
     this.url = Conf.weixinUrl;
   }
 
-  async _request(method, route, data) {
-    let options = {
-      //请求方式
-      method,
-      //请求头定义
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-    };
-    data = data || {};
-    if (method.toLowerCase() == 'post') {
-      data.sig = getSign(data, Conf.sign);
-      data.appId = Conf.sign.appId;
-    }
-    options.body = JSON.stringify(data);
-
-    if (!ignoreRouter.includes(route)) {
-      NativeModules.RaioApi.debug(
-        {
-          msg: `request route ${route}, send data = ${JSON.stringify(
-            options.body,
-          )}`,
-        },
-        null,
-      );
-      console.debug(`request route ${route}, send data ${options.body}`);
-    }
-
+  async _request(route) {
     return new Promise(async (resolve, reject) => {
-      let timer = setTimeout(() => {
-        if (!ignoreRouter.includes(route)) {
-          NativeModules.RaioApi.debug(
-            {msg: `response route ${route} timeout`},
-            null,
-          );
-          console.debug(`response route ${route} timeout`);
-        }
-        reject(new Error('timeout'));
-      }, 10000);
       try {
         let res = await fetch(this.url + route, options);
-        clearTimeout(timer);
         if (res.status >= 200 && res.status < 500) {
           let resObj = await res.json();
           //console.debug(`response route ${route} success, data=${JSON.stringify(resObj)}`);
@@ -556,7 +609,7 @@ class WeiXinApi {
   async getWeiXinQrcode(ticket) {
     let res = null;
     try {
-      res = await this._request('POST', ticket);
+      res = await this._request('GET', ticket);
     } catch (e) {
       console.info('request ignoreUpgrade crash!!err=%o', e);
     }

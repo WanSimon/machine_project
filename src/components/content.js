@@ -22,48 +22,52 @@ class Content extends Component {
   componentDidMount() {
     let cartList = store.getState().cart.cartList;
     this.setState({cartList});
+    console.info('content');
+    this.props.dragArr.forEach((item) => {
+      console.info(
+        '----------content------------',
+        item.orgProductInfo.productInfo.homeThumbUrl,
+      );
+    });
   }
 
   updateCart(type, product) {
-    let merchant_product_id = product.merchant_product_info.merchant_product_id;
+    let orgProductId = product.orgProductInfo.orgProductId;
     if (type === -1) {
-      let obj = this.state.cartList[merchant_product_id];
+      let obj = this.state.cartList[orgProductId];
       if (obj && obj.num > 0) {
         obj.num--;
         this.setState({cartList: {...this.state.cartList}});
       }
     }
     if (type === 1) {
-      let obj = this.state.cartList[merchant_product_id];
+      let obj = this.state.cartList[orgProductId];
       if (obj) {
-        if (obj.available_stock > obj.num) {
+        if (obj.availableStock > obj.num) {
           obj.num++;
         }
       } else {
         //无可用库存
-        if (product.real_stock <= product.lock_stock) {
+        if (product.realStock <= product.lockStock) {
           return;
         }
-        this.state.cartList[merchant_product_id] = {
+        this.state.cartList[orgProductId] = {
           num: 1,
-          name: product.merchant_product_info.product_info.name,
-          home_thumb: product.merchant_product_info.product_info.home_thumb,
-          price: product.merchant_product_info.price,
-          // customer_price: product.merchant_product_info.customer_price,
-          specification:
-            product.merchant_product_info.product_info.specification,
-          product_id: product.merchant_product_info.product_info.id,
-          electronic_monitoring_code:
-            product.merchant_product_info.electronic_monitoring_code,
-          batch_number: product.merchant_product_info.batch_number,
-          expiration_date:
-            product.merchant_product_info.product_info.expiration_date,
-          manufacturer: product.merchant_product_info.product_info.manufacturer,
-          batch: product.merchant_product_info.batch,
-          real_stock: product.real_stock,
-          lock_stock: product.lock_stock,
+          name: product.orgProductInfo.productInfo.name,
+          homeThumbUrl: product.orgProductInfo.productInfo.homeThumbUrl,
+          price: product.orgProductInfo.price,
+          specification: product.orgProductInfo.productInfo.specification,
+          productId: product.orgProductInfo.productInfo.productId,
+          electronicMonitoringCode:
+            product.orgProductInfo.electronicMonitoringCode,
+          batchNumber: product.orgProductInfo.batchNumber,
+          expirationDate: product.orgProductInfo.productInfo.expirationDate,
+          manufacturer: product.orgProductInfo.productInfo.manufacturer,
+          batch: product.orgProductInfo.batch,
+          realStock: product.realStock,
+          lockStock: product.lockStock,
           //可用库存
-          available_stock: product.real_stock - product.lock_stock,
+          availableStock: product.realStock - product.lockStock,
         };
       }
       this.setState({cartList: {...this.state.cartList}});
@@ -83,82 +87,6 @@ class Content extends Component {
         }}>
         {/* <View
           style={{
-            width: p2dWidth(232),
-            marginRight: p2dWidth(30),
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-          <View
-            style={{
-              width: '100%',
-              height: p2dHeight(80),
-              lineHeight: p2dHeight(80),
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#B1EAEF',
-            }}>
-            <Image
-              style={{
-                width: p2dWidth(40),
-                height: p2dWidth(40),
-              }}
-              source={require('../assets/up.png')}
-            />
-          </View>
-
-          <View
-            style={{
-              flexGrow: 1,
-              width: '100%',
-              position: 'relative',
-            }}>
-            <ScrollView
-              style={{
-                width: '100%',
-                position: 'absolute',
-                height: '100%',
-                backgroundColor: '#E1E1E1',
-              }}>
-              {this.props.typeArr.map((item) => (
-                <Text
-                  style={{
-                    width: '100%',
-                    height: p2dHeight(120),
-                    textAlign: 'center',
-                    lineHeight: p2dHeight(140),
-                    fontSize: p2dWidth(36),
-                    fontWeight: item.id === this.props.type ? '600' : '500',
-                    color: item.id === this.props.type ? '#333333' : '#999999',
-                    backgroundColor: item.id == this.props.type ? '#fff' : null,
-                  }}
-                  onPress={() => this.props.setType(item.id)}
-                  key={item.id}>
-                  {item.name}
-                </Text>
-              ))}
-            </ScrollView>
-          </View>
-
-          <View
-            style={{
-              width: '100%',
-              height: p2dHeight(80),
-              backgroundColor: '#B1EAEF',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <Image
-              style={{
-                width: p2dWidth(40),
-                height: p2dWidth(40),
-              }}
-              source={require('../assets/down.png')}
-            />
-          </View>
-        </View> */}
-
-        {/* <View
-          style={{
             flexGrow: 1,
             position: 'relative',
           }}> */}
@@ -167,22 +95,19 @@ class Content extends Component {
             position: 'absolute',
             height: '100%',
             width: '100%',
-            // marginLeft: '5%',
-            // width: '95%',
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: 'yellow',
+            // backgroundColor: 'blue',
           }}>
           <View
             style={{
+              marginLeft: p2dWidth(50),
+              marginRight: p2dWidth(50),
               display: 'flex',
               flexDirection: 'row',
               flexWrap: 'wrap',
-              justifyContent: 'space-evenly',
-              marginRight: p2dWidth(30),
-              backgroundColor: 'grey',
-              // borderWidth: '2',
-              // borderStyle: 'solid',
+              justifyContent: 'space-between',
+              // marginRight: p2dWidth(30),
               // borderColor: 'green',
             }}>
             {this.props.dragArr.map((item) => (
@@ -192,11 +117,13 @@ class Content extends Component {
                   height: p2dHeight(230),
                   marginBottom: p2dHeight(20),
                   float: 'left',
-                  borderBottomWidth: p2dWidth(1),
-                  borderBottomColor: '#DCDCDC',
+                  marginTop: p2dHeight(40),
+                  borderBottomWidth: p2dWidth(3),
+                  borderBottomColor: '#D1D1D1',
                   position: 'relative',
+                  // backgroundColor: 'red',
                 }}
-                key={item.merchant_product_info.merchant_product_id}>
+                key={item.orgProductInfo.productInfo.productId}>
                 <Image
                   style={{
                     width: p2dWidth(160),
@@ -207,8 +134,8 @@ class Content extends Component {
                   }}
                   source={{
                     uri:
-                      $conf.resource_oss +
-                      item.merchant_product_info.product_info.home_thumb,
+                      $conf.resource_fdfs +
+                      item.orgProductInfo.productInfo.homeThumbUrl,
                   }}
                 />
                 <Text
@@ -222,7 +149,19 @@ class Content extends Component {
                     fontWeight: '500',
                     fontSize: p2dWidth(24),
                   }}>
-                  {item.merchant_product_info.product_info.name}
+                  {item.orgProductInfo.productInfo.name}
+                </Text>
+
+                <Text
+                  style={{
+                    position: 'absolute',
+                    height: p2dHeight(33),
+                    lineHeight: p2dHeight(33),
+                    color: '#333333',
+                    fontWeight: '500',
+                    fontSize: p2dWidth(24),
+                  }}>
+                  {item.orgProductInfo.productInfo.orgProductId}
                 </Text>
                 <Text
                   style={{
@@ -235,7 +174,7 @@ class Content extends Component {
                     fontWeight: '500',
                     fontSize: p2dWidth(18),
                   }}>
-                  {item.merchant_product_info.product_info.specification}
+                  {item.orgProductInfo.productInfo.specification}
                 </Text>
                 <Text
                   style={{
@@ -248,7 +187,7 @@ class Content extends Component {
                     fontWeight: '500',
                     fontSize: p2dWidth(28),
                   }}>
-                  ¥{parseCent(item.merchant_product_info.price)}
+                  ¥{parseCent(item.orgProductInfo.price)}
                 </Text>
                 <TouchableOpacity
                   onPress={() => this.updateCart(1, item)}
@@ -277,23 +216,14 @@ class Content extends Component {
                     fontWeight: '500',
                     fontSize: p2dWidth(28),
                   }}>
-                  {this.state.cartList[
-                    item.merchant_product_info.merchant_product_id
-                  ] &&
-                  this.state.cartList[
-                    item.merchant_product_info.merchant_product_id
-                  ].num > 0
-                    ? this.state.cartList[
-                        item.merchant_product_info.merchant_product_id
-                      ].num
+                  {this.state.cartList[item.orgProductInfo.orgProductId] &&
+                  this.state.cartList[item.orgProductInfo.orgProductId].num > 0
+                    ? this.state.cartList[item.orgProductInfo.orgProductId].num
                     : ''}
                 </Text>
-                {this.state.cartList[
-                  item.merchant_product_info.merchant_product_id
-                ] &&
-                this.state.cartList[
-                  item.merchant_product_info.merchant_product_id
-                ].num > 0 ? (
+                {this.state.cartList[item.orgProductInfo.orgProductId] &&
+                this.state.cartList[item.orgProductInfo.orgProductId].num >
+                  0 ? (
                   <TouchableOpacity
                     style={{
                       position: 'absolute',
@@ -309,7 +239,7 @@ class Content extends Component {
                     />
                   </TouchableOpacity>
                 ) : null}
-                {item.real_stock - item.lock_stock < 1 ? (
+                {item.realStock - item.lockStock < 1 ? (
                   <ImageBackground
                     style={{
                       width: '100%',
@@ -322,7 +252,6 @@ class Content extends Component {
             ))}
           </View>
         </ScrollView>
-        {/* </View> */}
       </View>
     );
   }

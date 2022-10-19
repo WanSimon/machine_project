@@ -98,6 +98,8 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
+
+
 /**
  * The preferred build flavor of JavaScriptCore.
  *
@@ -122,6 +124,14 @@ def enableHermes = project.ext.react.get("enableHermes", false);
 
 android {
     ndkVersion "20.1.5948944"
+
+/*
+ * 用于解决打包时的资源命名重复问题
+ * @author WanSimon
+ */
+    aaptOptions.cruncherEnabled = false
+    aaptOptions.useNewCruncher = false
+
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']

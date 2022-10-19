@@ -12,7 +12,6 @@ import {p2dHeight, p2dWidth} from '../js/utils';
 import {clearCart} from '../action';
 import {store} from '../store/store';
 import TopBar from '../components/topbar';
-import api from '../js/cloudApi';
 import QRCode from 'react-native-qrcode-svg';
 
 class fail extends Component {
@@ -24,14 +23,15 @@ class fail extends Component {
     let info = store.getState().equipmentInfo;
     this.state = {
       text1: '非常抱歉，取药失败！',
-      text2: '联系客服：' + (info.equipment_group_info.phone || '4008-793-542'),
+      text2: '联系客服：' + (info.equipmentGroupInfo.phone || '4008-793-542'),
       text3: '请在取药口拿取小票，并拍照留存',
       text4: '工作时间：09:00-18:00',
       productList: productList,
-      serial_no: '',
+      serialNo: '',
       applyRefundUrl: '',
     };
   }
+
   goHome() {
     const action = clearCart();
     store.dispatch(action);
@@ -39,38 +39,10 @@ class fail extends Component {
   }
 
   async componentDidMount() {
-    let equipmentInfo = store.getState().equipmentInfo;
-    let merchant_id = equipmentInfo.equipment_group_info.merchant_id;
-
     let orderInfo = store.getState().orderInfo;
-    let serial_no, order_id;
-    // 自助购药
-    if (orderInfo && orderInfo.id) {
-      order_id = orderInfo.id;
-      if (!orderInfo.serial_no) {
-        let res = await api.getOrderInfo(orderInfo.id);
-        serial_no = res.serial_no || ' ';
-      } else {
-        serial_no = orderInfo.serial_no;
-      }
-    } else {
-      let codeOrder = store.getState().codeOrder;
-      let orderInfo = codeOrder.orderInfo;
-      //取药码取药
-      if (orderInfo && orderInfo.order_id) {
-        order_id = orderInfo.order_id;
-        if (!orderInfo.serial_no) {
-          let res = await api.getOrderInfo(orderInfo.order_id);
-          serial_no = res.serial_no || ' ';
-        } else {
-          serial_no = orderInfo.serial_no;
-        }
-      } else {
-        console.error('unknown order.');
-      }
-    }
-    let applyRefundUrl = $conf.applyRefundUrl + `&o=${serial_no}`;
-    this.setState({serial_no, applyRefundUrl});
+
+    let applyRefundUrl = $conf.applyRefundUrl + `&o=${orderInfo.serialNo}`;
+    this.setState({serialNo: orderInfo.serialNo, applyRefundUrl});
   }
 
   parseStatus(status) {
@@ -116,7 +88,7 @@ class fail extends Component {
               color: '#333',
               letterSpacing: p2dWidth(1),
             }}>
-            流水订单号：{this.state.serial_no}
+            流水订单号：{this.state.serialNo}
           </Text>
         </View>
 
@@ -133,7 +105,7 @@ class fail extends Component {
               <View style={customStyle.productItem}>
                 <Image
                   style={customStyle.productImage}
-                  source={{uri: $conf.resource_oss + item.home_thumb}}
+                  source={{uri: $conf.resource_oss + item.homeThumb}}
                 />
                 <View style={customStyle.productInfo}>
                   <Text style={customStyle.productName}>{item.name}</Text>

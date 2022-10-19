@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {Text, View, Image, ScrollView, TouchableOpacity} from 'react-native';
-
 import {p2dHeight, p2dWidth, parseCent} from '../js/utils';
 
 class cart extends Component {
@@ -21,9 +20,11 @@ class cart extends Component {
     for (let key in cartList) {
       if (cartList[key].num > 0) {
         cartArr.push({
-          merchant_product_id: key,
+          orgProductId: key,
           ...cartList[key],
         });
+
+        console.log(key, cartList[key]);
       }
     }
     this.setState({cartList, cartArr});
@@ -31,18 +32,18 @@ class cart extends Component {
   }
 
   updateCart(type, product) {
-    let merchant_product_id = product.merchant_product_id;
+    let orgProductId = product.orgProductId;
     if (type === -1) {
-      let obj = this.state.cartList[merchant_product_id];
+      let obj = this.state.cartList[orgProductId];
       if (obj && obj.num > 0) {
         obj.num--;
         this.parseCart({...this.state.cartList});
       }
     }
     if (type === 1) {
-      let obj = this.state.cartList[merchant_product_id];
+      let obj = this.state.cartList[orgProductId];
       if (obj) {
-        if (obj.available_stock > obj.num) {
+        if (obj.availableStock > obj.num) {
           obj.num++;
         }
       }
@@ -148,7 +149,7 @@ class cart extends Component {
                 flexDirection: 'column',
               }}>
               {this.state.cartArr.map((item, index) => (
-                <View key={item.merchant_product_id}>
+                <View key={item.orgProductId}>
                   <View
                     style={{
                       height: p2dHeight(194),
@@ -162,7 +163,7 @@ class cart extends Component {
                         width: p2dWidth(200),
                         height: p2dWidth(200),
                       }}
-                      source={{uri: $conf.resource_oss + item.home_thumb}}
+                      source={{uri: $conf.resource_oss + item.homeThumb}}
                     />
                     <Text
                       style={{

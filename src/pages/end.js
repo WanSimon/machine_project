@@ -3,10 +3,8 @@ import {
   Text,
   View,
   Image,
-  ScrollView,
   TouchableOpacity,
   ImageBackground,
-  NativeModules,
 } from 'react-native';
 import {p2dHeight, p2dWidth, parseCent} from '../js/utils';
 import {clearCart} from '../action';
@@ -32,7 +30,6 @@ class end extends Component {
   async componentDidMount() {
     console.debug('go to page 【end】');
     this.timer = setInterval(() => {
-      console.debug('timer tita');
       if (this.state.count > 0) {
         this.setState({count: this.state.count - 1});
       } else {

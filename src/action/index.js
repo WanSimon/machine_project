@@ -4,49 +4,54 @@ export const ActionType = {
   ACTION_UPGRADE_STATUS_FLAG: 'action_upgrade_status_flag',
   ACTION_UPGRADE_CART: 'action_upgrade_cart',
   ACTION_CLEAR_CART: 'action_clear_cart',
-  ACTION_ADD_CUSTOMER: 'action_add_customer',
   ACTION_UPGRADE_ORDER: 'action_upgrade_order',
-  ACTION_UPGRADE_CODE_ORDER: 'action_upgrade_code_order',
+  // ACTION_UPGRADE_CODE_ORDER: 'action_upgrade_code_order',
   ACTION_UPDATE_SCENE_STR: 'action_update_scene_str',
   ACTION_UPDATE_TOKEN: 'action_update_token',
+  ACTION_UPDATE_LOGIN_STATUS: 'action_update_login_status',
+  ACTION_UPDATE_USER_ID: 'action_update_user_id',
+  ACTION_UPDATE_MOBILE: 'action_update_mobile',
+  ACTION_UPDATE_SERIAL_NO: 'action_update_serial_no',
+  ACTION_UPDATE_ORDER_ID: 'action_update_order_id',
+  ACTION_UPDATE_LOGGED: 'action_update_logged',
 };
 
 //更新设备信息
 export function upgradeEquipmentInfo(equipmentInfo) {
   //合并各槽道的同品类药品
-  let slot_product_list_info = [];
+  let productInfoList = [];
   if (
-    equipmentInfo.equipment_product_info &&
-    equipmentInfo.equipment_product_info.slot_product_list_info
+    equipmentInfo.equipmentProductInfo &&
+    equipmentInfo.equipmentProductInfo.slotProductInfoList
   ) {
-    let slotProductList =
-      equipmentInfo.equipment_product_info.slot_product_list_info;
-    for (let i = 0; i < slotProductList.length; ++i) {
-      let slotProductInfo = slotProductList[i];
+    let slotProductInfoList =
+      equipmentInfo.equipmentProductInfo.slotProductInfoList;
+    for (let i = 0; i < slotProductInfoList.length; ++i) {
+      let slotProductInfo = slotProductInfoList[i];
       let bFound = false;
-      for (let j = 0; j < slot_product_list_info.length; ++j) {
+      for (let j = i + 1; j < slotProductInfoList.length; ++j) {
         if (
-          slotProductInfo.merchant_product_info.merchant_product_id ===
-          slot_product_list_info[j].merchant_product_info.merchant_product_id
+          slotProductInfo.orgProductInfo.orgProductId ===
+          slotProductInfoList[j].orgProductInfo.orgProductId
         ) {
-          slot_product_list_info[j].real_stock =
-            slot_product_list_info[j].real_stock + slotProductInfo.real_stock;
-          slot_product_list_info[j].lock_stock =
-            slot_product_list_info[j].lock_stock + slotProductInfo.lock_stock;
+          slotProductInfoList[j].realStock =
+            slotProductInfoList[j].realStock + slotProductInfo.realStock;
+          slotProductInfoList[j].lockStock =
+            slotProductInfoList[j].lockStock + slotProductInfo.lockStock;
           bFound = true;
           break;
         }
       }
       if (!bFound) {
-        slot_product_list_info.push({
-          merchant_product_info: slotProductInfo.merchant_product_info,
-          real_stock: slotProductInfo.real_stock,
-          lock_stock: slotProductInfo.lock_stock,
+        productInfoList.push({
+          orgProductInfo: slotProductInfo.orgProductInfo,
+          realStock: slotProductInfo.realStock,
+          lockStock: slotProductInfo.lockStock,
         });
       }
     }
   }
-  equipmentInfo.product_list = slot_product_list_info;
+  equipmentInfo.productList = productInfoList;
   return {
     type: ActionType.ACTION_UPGRADE_EQUIPMENT_INFO,
     payload: equipmentInfo,
@@ -84,15 +89,6 @@ export function clearCart() {
     payload: {},
   };
 }
-
-//添加会员标识
-// export function addCustomer() {
-//   return {
-//     type: ActionType.ACTION_ADD_CUSTOMER,
-//     payload: {},
-//   };
-// }
-
 //更新订单
 export function upgradeOrder(data) {
   return {
@@ -100,15 +96,6 @@ export function upgradeOrder(data) {
     payload: data,
   };
 }
-
-//更新取药码订单
-export function upgradeCodeOrder(data) {
-  return {
-    type: ActionType.ACTION_UPGRADE_CODE_ORDER,
-    payload: data,
-  };
-}
-
 //更新场景标识信息
 export function updateSceneStr(data) {
   return {
@@ -122,5 +109,47 @@ export function updateToken(data) {
   return {
     type: ActionType.ACTION_UPDATE_TOKEN,
     payload: data,
+  };
+}
+
+export function updateLoginStatus(data) {
+  return {
+    type: ActionType.ACTION_UPDATE_LOGIN_STATUS,
+    payload: data,
+  };
+}
+
+export function updateUserId(data) {
+  return {
+    type: ActionType.ACTION_UPDATE_USER_ID,
+    payload: data,
+  };
+}
+
+export function updateMobile(mobile) {
+  return {
+    type: ActionType.ACTION_UPDATE_MOBILE,
+    payload: mobile,
+  };
+}
+
+export function updateOrderId(orderId) {
+  return {
+    type: ActionType.ACTION_UPDATE_ORDER_ID,
+    payload: orderId,
+  };
+}
+
+export function updateSerialNo(serialNo) {
+  return {
+    type: ActionType.ACTION_UPDATE_SERIAL_NO,
+    payload: serialNo,
+  };
+}
+
+export function updateLogged(user) {
+  return {
+    type: ActionType.ACTION_UPDATE_LOGGED,
+    payload: user,
   };
 }

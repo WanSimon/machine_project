@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {Text, View, Image, TouchableOpacity} from 'react-native';
 
 import {p2dHeight, p2dWidth, parseCent} from '../js/utils';
-import store from '../store/store';
+import {store} from '../store/store';
 
 import api from '../js/cloudApi';
 class BottomBar extends Component {
@@ -16,19 +16,7 @@ class BottomBar extends Component {
 
   async submitOrder() {
     if (this.props.productNum > 0) {
-      let sceneStr = store.getState().sceneStr;
-      if (sceneStr.length <= 0) {
-        //跳转至登录页面
-        this.props.navigation.navigate('login');
-      } else {
-        let res = await api.getUserInfo(sceneStr);
-        if (res.status === 200) {
-          this.props.goOrder();
-        } else {
-          this.props.navigation.navigate('login');
-        }
-        //sceneStr进行校验
-      }
+      this.props.goOrder();
     }
   }
 

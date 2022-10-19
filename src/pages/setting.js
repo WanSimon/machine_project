@@ -4,55 +4,30 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  StatusBar,
   Alert,
   Button,
   DeviceEventEmitter,
   NativeModules,
   BackHandler,
+  TextInput,
 } from 'react-native';
 import TopBar from '../components/topbar';
 import {p2dWidth, parseTime} from '../js/utils';
-import {Picker} from '@react-native-picker/picker';
 import Conf from '../js/conf';
-import {
-  AddBlankLine,
-  AddTextContent,
-  AddImageContent,
-} from '../js/ticketHelper';
-import {store} from '../store/store';
-import api from '../js/cloudApi';
-import UpgradeModal from '../components/upgrade';
+import {AddBlankLine, AddTextContent} from '../js/ticketHelper';
 
 class Setting extends Component {
   constructor() {
     super();
     this.state = {
-      //层
-      selectedRow: '1',
-      //列
-      selectedColumn: '1',
       //按钮状态
       btnDisabled: {
         track: false,
         print: false,
         upgrade: false,
       },
-      //
-      currentAppVersion: Conf.appVersion,
-      //层数据
-      rowData: ['1'],
-      //列数据
-      columnData: ['1'],
-      //版本信息
-      versionInfo: {
-        embed_version: '',
-        current_version: '',
-        equipment_type: '',
-        equipment_id: '',
-        mac: '',
-      },
-      upgradeData: {},
+      inputX: '1', //列
+      inputY: '1', //层
     };
     this.queue = new Set();
   }
@@ -85,57 +60,11 @@ class Setting extends Component {
         }
       },
     );
-    //获取版本数据信息
-    let equipmentInfo = store.getState().equipmentInfo;
-    try {
-      //药道信息
-      let slotInfo = JSON.parse(equipmentInfo.drug_channel);
-      slotInfo.aisleX = Number(slotInfo.aisleX) || 1;
-      slotInfo.aisleY = Number(slotInfo.aisleY) || 1;
-      let row = Array(slotInfo.aisleY)
-        .toString()
-        .split(',')
-        .map((item, idx) => `${idx + 1}`);
-      this.setState({rowData: row});
-      let column = Array(slotInfo.aisleX)
-        .toString()
-        .split(',')
-        .map((item, idx) => `${idx + 1}`);
-      this.setState({columnData: column});
-      //版本信息
-      let versionInfo = equipmentInfo.equipment_version_info;
-      //设备类型信息
-      let equipmentTypeInfo = equipmentInfo.equipment_type_info;
-      let obj = {
-        current_version: versionInfo.current_version,
-        embed_version: versionInfo.embed_version,
-        equipment_type: equipmentTypeInfo.type,
-        equipment_id: equipmentInfo.id,
-        mac: equipmentInfo.mac,
-      };
-      this.setState({versionInfo: obj});
-    } catch (e) {
-      NativeModules.RaioApi.error(
-        {
-          msg: 'setting page store equipmentInfo error',
-          method: 'setting.componentDidMount',
-        },
-        null,
-      );
-    }
   }
   componentWillUnmount() {
     console.debug('destroy page 【setting】');
     DeviceEventEmitter.removeListener('out_callback');
     this.emitListener = null;
-  }
-  setSelectedRow(value, index) {
-    //console.info(`row ${value}${typeof value}-${index}`);
-    this.setState({selectedRow: value});
-  }
-  setSelectedColumn(value, index) {
-    //console.info(`column ${value}${typeof value}-${index}`);
-    this.setState({selectedColumn: value});
   }
   out(x, y) {
     NativeModules.RaioApi.debug(
@@ -172,21 +101,11 @@ class Setting extends Component {
         null,
       );
       this.setState({btnDisabled: {...this.state.btnDisabled, track: true}});
-      let x = Number(this.state.selectedColumn) - 1;
-      let y = 6 - (Number(this.state.selectedRow) - 1);
-      NativeModules.RaioApi.debug(
-        {
-          msg: `setting page testTrack x=${x},y=${y}`,
-          method: 'setting.testTrack',
-        },
-        null,
-      );
+      const {inputX, inputY} = this.state;
+      x = parseInt(inputX) - 1;
+      y = 7 - parseInt(inputY);
+
       await this.out(x, y);
-      this.setState({btnDisabled: {...this.state.btnDisabled, track: false}});
-      NativeModules.RaioApi.debug(
-        {msg: 'setting page testTrack end', method: 'setting.testTrack'},
-        null,
-      );
     } catch (e) {
       NativeModules.RaioApi.error(
         {
@@ -195,8 +114,9 @@ class Setting extends Component {
         },
         null,
       );
-      this.setState({btnDisabled: {...this.state.btnDisabled, track: false}});
     }
+
+    this.setState({btnDisabled: {...this.state.btnDisabled, track: false}});
   }
   async testPrint() {
     try {
@@ -353,70 +273,7 @@ class Setting extends Component {
       {text: '取消'},
     ]);
   }
-  async upgrade() {
-    try {
-      if (this.state.btnDisabled.upgrade) {
-        return;
-      }
-      NativeModules.RaioApi.debug(
-        {msg: 'setting page upgrade start', method: 'setting.upgrade'},
-        null,
-      );
-      this.setState({btnDisabled: {...this.state.btnDisabled, upgrade: true}});
-      let data = await api.getUpgradeInfo({
-        equipment_id: this.state.versionInfo.equipment_id,
-        mac: this.state.versionInfo.mac,
-        app_version: Conf.appVersion,
-      });
 
-      if (data && data.app_version_info) {
-        NativeModules.RaioApi.debug(
-          {
-            msg: `setting page getUpgradeInfo success, data=${JSON.stringify(
-              data,
-            )}`,
-            method: 'setting.upgrade',
-          },
-          null,
-        );
-        if (
-          data.app_version_info.refresh_version &&
-          data.app_version_info.refresh_version !=
-            data.app_version_info.current_version
-        ) {
-          this.setState({upgradeData: data.app_version_info});
-          this.refs.upModal.showModal();
-        } else {
-          Alert.alert('', '未检测到新版本', [{text: '确定'}]);
-        }
-      } else {
-        Alert.alert('', '获取版本更新数据失败', [{text: '确定'}]);
-        NativeModules.RaioApi.error(
-          {
-            msg: `setting page getUpgradeInfo fail, data=${JSON.stringify(
-              data,
-            )}`,
-            method: 'setting.upgrade',
-          },
-          null,
-        );
-      }
-      NativeModules.RaioApi.debug(
-        {msg: 'setting page upgrade end', method: 'setting.upgrade'},
-        null,
-      );
-      this.setState({btnDisabled: {...this.state.btnDisabled, upgrade: false}});
-    } catch (e) {
-      NativeModules.RaioApi.error(
-        {
-          msg: `setting page upgrade error=${e.message}`,
-          method: 'setting.upgrade',
-        },
-        null,
-      );
-      this.setState({btnDisabled: {...this.state.btnDisabled, upgrade: false}});
-    }
-  }
   confirmCallback() {
     if (this.refs.upModal) {
       this.refs.upModal.cancel();
@@ -443,28 +300,44 @@ class Setting extends Component {
                       flexDirection: 'row',
                       alignItems: 'center',
                     }}>
-                    <View style={{flexGrow: 0, width: 100}}>
-                      <Picker
-                        selectedValue={this.state.selectedRow}
-                        style={{height: 50, width: 'auto'}}
-                        onValueChange={this.setSelectedRow.bind(this)}>
-                        {this.state.rowData.map((item, idx) => (
-                          <Picker.Item key={item} label={item} value={item} />
-                        ))}
-                      </Picker>
+                    <View
+                      style={{
+                        flexGrow: 0,
+                        width: 100,
+                      }}>
+                      <TextInput
+                        style={{
+                          borderColor: 'red',
+                          borderWidth: 3,
+                          fontSize: p2dWidth(32),
+                          width: p2dWidth(200),
+                        }}
+                        keyboardType="numeric" //弹出键盘类型
+                        value={this.state.inputY}
+                        onChangeText={(val) =>
+                          this.setState({inputY: val})
+                        }></TextInput>
                     </View>
                     <View style={{flexShrink: 0, marginRight: p2dWidth(20)}}>
                       <Text>层</Text>
                     </View>
-                    <View style={{flexGrow: 0, width: 100}}>
-                      <Picker
-                        selectedValue={this.state.selectedColumn}
-                        style={{height: 50, width: 'auto'}}
-                        onValueChange={this.setSelectedColumn.bind(this)}>
-                        {this.state.columnData.map((item, idx) => (
-                          <Picker.Item key={item} label={item} value={item} />
-                        ))}
-                      </Picker>
+                    <View
+                      style={{
+                        flexGrow: 0,
+                        width: 100,
+                      }}>
+                      <TextInput
+                        style={{
+                          borderColor: 'green',
+                          borderWidth: 3,
+                          fontSize: p2dWidth(32),
+                          width: p2dWidth(200),
+                        }}
+                        keyboardType="numeric" //弹出键盘类型
+                        value={this.state.inputX}
+                        onChangeText={(val) =>
+                          this.setState({inputX: val})
+                        }></TextInput>
                     </View>
                     <View style={{flexShrink: 0, marginRight: p2dWidth(20)}}>
                       <Text>列</Text>
@@ -492,33 +365,6 @@ class Setting extends Component {
               </View>
               <Text style={customStyle.textLabel}>关于本机</Text>
               <View style={customStyle.itemContainer3}>
-                {/* <View style={customStyle.itemContainer4}>
-                  <View style={{flexShrink: 0, width: p2dWidth(360)}}><Text>嵌入式版本</Text></View>
-                  <View style={{flexGrow: 1}}><Text>{this.state.versionInfo.embed_version}</Text></View>
-                </View>  */}
-                <View style={customStyle.itemContainer4}>
-                  <View style={{flexShrink: 0, width: p2dWidth(280)}}>
-                    <Text>软件版本</Text>
-                  </View>
-                  <View style={{flexGrow: 1}}>
-                    <Text>{this.state.currentAppVersion}</Text>
-                  </View>
-                  <Button
-                    color="#00BFCE"
-                    disabled={this.state.btnDisabled.upgrade}
-                    style={{flexShrink: 0}}
-                    title="检查更新"
-                    onPress={this.upgrade.bind(this)}
-                  />
-                </View>
-                <View style={customStyle.itemContainer4}>
-                  <View style={{flexShrink: 0, width: p2dWidth(280)}}>
-                    <Text>本机型号</Text>
-                  </View>
-                  <View style={{flexGrow: 1}}>
-                    <Text>{this.state.versionInfo.equipment_type}</Text>
-                  </View>
-                </View>
                 <View style={customStyle.itemContainer4}>
                   <View style={{flexShrink: 0, width: p2dWidth(280)}}>
                     <Text>退出程序</Text>
@@ -535,8 +381,6 @@ class Setting extends Component {
             </ScrollView>
           </View>
         </View>
-
-        <UpgradeModal ref="upModal" upgradeData={this.state.upgradeData} />
       </View>
     );
   }

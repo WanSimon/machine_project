@@ -4,27 +4,16 @@ import {
   View,
   Image,
   ScrollView,
-  TouchableOpacity,
   ImageBackground,
   NativeModules,
   DeviceEventEmitter,
 } from 'react-native';
 import TopBar from '../components/topbar';
-import {
-  p2dHeight,
-  p2dWidth,
-  parseCent,
-  parseTime,
-  getBase64,
-} from '../js/utils';
+import {p2dHeight, p2dWidth, parseTime} from '../js/utils';
 import {store} from '../store/store';
 import api from '../js/cloudApi';
-import {
-  upgradeEquipmentInfo,
-  upgradePickupStatus,
-  upgradeFailedProduct,
-} from '../action';
-import {EquipmentOperationType, LockTag, OrderStatus} from '../js/common';
+import {upgradeEquipmentInfo, upgradePickupStatus} from '../action';
+import {EquipmentOperationType, OrderStatus} from '../js/common';
 import uuid from 'react-native-uuid';
 import {
   AddBlankLine,
@@ -43,7 +32,7 @@ class wait extends Component {
       applyRefundUrl: '',
     };
 
-    this.quene = new Set();
+    this.queue = new Set();
   }
 
   async componentDidMount() {
@@ -59,7 +48,7 @@ class wait extends Component {
           },
           null,
         );
-        for (let item of this.quene) {
+        for (let item of this.queue) {
           if (item.x === res.x && item.y === res.y) {
             // 1：开始出货，2：等待用户取货，3：出货完成，负数：出货失败错误码
             if (res.type === 1 || res.type === 2) {
@@ -70,7 +59,7 @@ class wait extends Component {
             } else {
               item.reject(res.type);
             }
-            this.quene.delete(item);
+            this.queue.delete(item);
           }
         }
       },
@@ -88,25 +77,45 @@ class wait extends Component {
       null,
     );
 
-    let serial_no;
-    if (!orderInfo.serial_no) {
-      let res = await api.getOrderInfo(orderInfo.id);
-      serial_no = res.serial_no || '';
-    } else {
-      serial_no = orderInfo.serial_no;
-    }
+    let equipmentId =
+      store.getState().equipmentInfo.equipmentProductInfo.equipmentId;
+    let res = await api.getEquipmentDetail(equipmentId);
+    console.info(
+      '【wait】-----equipmentDetail---更新前的数据',
+      res.equipmentDetailInfo.equipmentProductInfo.slotProductInfoList,
+    );
 
-    let applyRefundUrl = $conf.applyRefundUrl + `&o=${serial_no}`;
+    console.info(
+      '【wait】-------本地药品信息---更新前',
+      store.getState().equipmentInfo.equipmentProductInfo.slotProductInfoList,
+    );
+
+    let applyRefundUrl = $conf.applyRefundUrl + `&o=${orderInfo.serialNo}`;
     this.setState({applyRefundUrl});
 
     let cartList = store.getState().cart.cartList;
+    console.info('cartList====>wait', cartList);
     let drugArr = this.parseCart(cartList);
     this.pickup(drugArr);
   }
 
-  componentWillUnmount() {
+  async componentWillUnmount() {
+    // let equipmentId =
+    //   store.getState().equipmentInfo.equipmentProductInfo.equipmentId;
+    // let res = await api.getEquipmentDetail(equipmentId);
+    // console.info('========+++++========', res);
+    // console.info(
+    //   '【wait】-----equipmentDetail---更新后的数据',
+    //   res.equipmentDetailInfo.equipmentProductInfo.slotProductInfoList,
+    // );
+
+    // console.info(
+    //   '【wait】-------本地药品信息---更新后',
+    //   store.getState().equipmentInfo.equipmentProductInfo.slotProductInfoList,
+    // );
+
     console.debug('destroy page 【wait】');
-    DeviceEventEmitter.removeListener('out_callback');
+    DeviceEventEmitter.removeAllListeners(); // out_callback
     this.emitListener = null;
   }
 
@@ -116,94 +125,121 @@ class wait extends Component {
     store.dispatch(action);
 
     let orderInfo = store.getState().orderInfo;
-    console.info('wait page func pickup get state orderInfo = %o', orderInfo);
-    NativeModules.RaioApi.debug(
-      {
-        msg: `wait page func pickup get state orderInfo = ${orderInfo}`,
-        method: 'wait.pickup',
-      },
-      null,
-    );
+
     //TODO log
     let equipmentInfo = store.getState().equipmentInfo;
-    let drug_channel = JSON.parse(equipmentInfo.drug_channel);
-    let equipment_slot = drug_channel.slot_info_list;
-    let slot_product_list_info =
-      equipmentInfo.equipment_product_info.slot_product_list_info;
-    let slot_list = [...slot_product_list_info];
+
+    console.info(
+      'orderInfo-----equipmentInfo-----wait',
+      orderInfo,
+      '------',
+      equipmentInfo.equipmentProductInfo.equipmentId,
+    );
+    // let drugChannel = JSON.parse(
+    //   store.getState().equipmentInfo.equipmentTypeInfo.drugChannel,
+    // );
+
+    //从药品的信息
+    // let equipment_slot = drugChannel.slot_info_list;
+    let slotProductInfoList =
+      equipmentInfo.equipmentProductInfo.slotProductInfoList;
+
+    //所有药品信息列表
+    let slotList = [...slotProductInfoList];
     // 该变量用来上传云端库存变更消息
-    let slot_product_pickup_info_list = [];
+    let slotProductPickupInfoList = [];
     let result = true;
     for (let i = 0; i < drugArr.length; i++) {
       let drug = drugArr[i];
-      let product_slot_list = slot_list.filter(
-        (slot) =>
-          slot.merchant_product_info.merchant_product_id ===
-          drug.merchant_product_id,
+      console.log('drug===>wait', drug);
+      //已选的药品信息列表
+      let productSlotList = slotList.filter(
+        (slot) => slot.orgProductInfo.productInfo.productId === drug.productId,
       );
 
       let isPicked = false;
 
-      for (let j = 0; j < product_slot_list.length && isPicked === false; j++) {
-        let slot = product_slot_list[j];
-        if (slot.real_stock > slot.lock_stock) {
-          let slot_no = slot.slot_no;
+      for (let j = 0; j < productSlotList.length && isPicked === false; j++) {
+        let slot = productSlotList[j]; //单个已选药品信息
 
-          let equipment_slot_obj = equipment_slot.filter(
-            (slot) => slot.slot_no === slot_no,
-          );
-          if (equipment_slot_obj && equipment_slot_obj.length > 0) {
-            let x = equipment_slot_obj[0].x;
-            let y = 6 - equipment_slot_obj[0].y;
-            let span = equipment_slot_obj[0].x_aisle_count;
+        if (slot.realStock > slot.lockStock) {
+          let slotNo = slot.slotNo; //eg:slotNo:"1,2"
 
-            // 该变量用来上传云端库存变更消息
-            let slot_product_chg_info = {
-              slot_no: slot_no,
-              merchant_product_id: drug.merchant_product_id,
-              electronic_monitoring_code: drug.electronic_monitoring_code,
-              changed_count: 1,
-              //op_time:new Date().getTime()/1000
-              op_time: new Date().getTime(),
-            };
-            //取药
-            try {
-              await this.out(x, y);
-              //取药成功
-              isPicked = true;
-              drugArr[i].status = 2;
-              slot.real_stock--;
+          let productSlotNoArray = slot.slotNo.split(',');
+          let x = productSlotNoArray[0] - 1;
+          let y = 7 - productSlotNoArray[1];
 
-              slot_product_chg_info.real_stock = slot.real_stock;
-              slot_product_chg_info.lock_stock = slot.lock_stock;
-              slot_product_chg_info.errcode = 0;
-              slot_product_chg_info.errmsg = 'pick up ok';
-            } catch (e) {
-              console.info('wait page func out err = %o', e);
-              NativeModules.RaioApi.debug(
-                {
-                  msg: `wait page func out err = ${e.message}`,
-                  method: 'wait.pickup',
-                },
-                null,
-              );
-              // todo 取药失败
-              result = false;
-              drugArr[i].status = 3;
+          //从drugChannel中筛选出单个已选药品的轨道信息
+          // let equipment_slot_obj = equipment_slot.filter(
+          //   (slot) => slot.slot_no === slot_no,
+          // );
+          // if () {
+          // let x = equipment_slot_obj[0].x;
+          // let y = 6 - equipment_slot_obj[0].y;
+          // let span = equipment_slot_obj[0].x_aisle_count;
 
-              //取药失败不减实际库存
-              slot_product_chg_info.real_stock = slot.real_stock;
-              slot_product_chg_info.lock_stock = slot.lock_stock;
-              slot_product_chg_info.errcode = -1;
-              slot_product_chg_info.errmsg = 'pick up failed';
+          // 该变量用来上传云端库存变更消息
+          let slotProductChgInfo = {
+            slotNo: slotNo,
+            orgProductId: drug.orgProductId,
+            electronicMonitoringCode: drug.electronicMonitoringCode,
+            changedCount: 1,
+            //op_time:new Date().getTime()/1000
+            opTime: new Date().getTime(),
+          };
+          //取药
+          try {
+            console.info('x--y---wait---page', x, y);
+            x = parseInt(x);
+            y = parseInt(y);
+            await this.out(x, y);
+            //取药成功
+            isPicked = true;
+            drugArr[i].status = 2;
+            slot.realStock--;
 
-              console.error(e);
-              //TODO log
-            }
-            this.setState({drugArr: [...drugArr]});
-            slot_product_pickup_info_list.push(slot_product_chg_info);
-            break;
+            slotProductChgInfo.realStock = slot.realStock;
+            slotProductChgInfo.lockStock = slot.lockStock;
+            slotProductChgInfo.errcode = 0;
+            slotProductChgInfo.errmsg = 'pick up ok';
+
+            //为了更新本地equipmentInfo
+            slotList = slotList.map((item) => {
+              if (item.slotNo === slot.slotNo) {
+                return {
+                  ...item,
+                  realStock: item.realStock - 1,
+                };
+              } else {
+                return item;
+              }
+            });
+          } catch (e) {
+            console.info('wait page func out err = %o', e);
+            NativeModules.RaioApi.debug(
+              {
+                msg: `wait page func out err = ${e.message}`,
+                method: 'wait.pickup',
+              },
+              null,
+            );
+            // todo 取药失败
+            result = false;
+            drugArr[i].status = 3;
+
+            //取药失败不减实际库存
+            slotProductChgInfo.realStock = slot.realStock;
+            slotProductChgInfo.lockStock = slot.lockStock;
+            slotProductChgInfo.errcode = -1;
+            slotProductChgInfo.errmsg = 'pick up failed';
+
+            console.error(e);
+            //TODO log
           }
+          this.setState({drugArr: [...drugArr]});
+          slotProductPickupInfoList.push(slotProductChgInfo);
+          break;
+          // }
         }
       }
 
@@ -213,7 +249,7 @@ class wait extends Component {
       }
     }
 
-    equipmentInfo.equipment_product_info.slot_product_list_info = slot_list;
+    equipmentInfo.equipmentProductInfo.slotProductInfoList = slotList;
     //更新本地库存
     action = upgradeEquipmentInfo(equipmentInfo);
     store.dispatch(action);
@@ -224,28 +260,28 @@ class wait extends Component {
       equipment_product_chg_info:{
         equipment_id:equipmentInfo.id,
         op_type:EquipmentOperationType.EOT_Pick_UP,
-        slot_product_chg_info_list:slot_product_pickup_info_list,
+        slotProductChgInfoList:slotProductPickupInfoList,
         order_id:orderInfo.id,
         lock_product:0,
         result:(result?0:-1)
       }
     };*/
     let equipmentProductChangeInfo = {
-      req_id: uuid.v4(),
-      equipment_id: equipmentInfo.id,
-      op_type: EquipmentOperationType.EOT_Pick_UP,
-      order_id: orderInfo.id,
-      lock_product: 0,
-      change_finished_lock_product:
-        orderInfo.lock_product == LockTag.LT_Lock ? 1 : 0,
+      requestId: uuid.v4(), //
+      equipmentId: equipmentInfo.equipmentProductInfo.equipmentId,
+      opType: EquipmentOperationType.EOT_Pick_UP,
+      orderId: orderInfo.orderId,
+      // lock_product: 0,
+      // change_finished_lock_product:
+      //   orderInfo.lock_product == LockTag.LT_Lock ? 1 : 0,
       result: result ? 0 : -1,
-      slot_product_chg_info_list: slot_product_pickup_info_list,
+      slotProductChgInfoList: slotProductPickupInfoList,
     };
 
     //取药成功 更改订单状态
     if (result) {
       //TODO log
-      await api.updateOrderStatus(orderInfo.id, OrderStatus.OS_Taked);
+      await api.updateOrderStatus(orderInfo.orderId, OrderStatus.OS_Taked);
     }
 
     // 上报库存变更记录
@@ -254,14 +290,21 @@ class wait extends Component {
     //取药结束 设置取药状态
     action = upgradePickupStatus(false);
     store.dispatch(action);
+
+    //
+
     if (result) {
       //打印成功小票
       this.print_success();
-      this.props.navigation.navigate('end');
+      setTimeout(() => {
+        this.props.navigation.navigate('end');
+      }, 5000);
     } else {
       //打印失败小票
       this.print_fail(drugArr);
-      this.props.navigation.navigate('fail', {productList: drugArr});
+      setTimeout(() => {
+        this.props.navigation.navigate('fail', {productList: drugArr});
+      }, 5000);
     }
   }
 
@@ -279,7 +322,6 @@ class wait extends Component {
     try {
       let cart = store.getState().cart;
       let info = store.getState().equipmentInfo;
-      // let customerFlag = store.getState().customerFlag;
       let orderInfo = store.getState().orderInfo;
       console.info(
         'wait page func print_success get state orderInfo = %o',
@@ -292,43 +334,40 @@ class wait extends Component {
         },
         null,
       );
-      if (!orderInfo.serial_no) {
-        let res = await api.getOrderInfo(orderInfo.id);
-        orderInfo.serial_no = res.serial_no || ' ';
-      }
+
       //TODO log
-      let ticket_template_info_list = [];
+      let ticketTemplateInfoList = [];
       //标题
-      let ticket_title = '欧药师智能药机';
-      let obj = AddTextContent(ticket_title, 1, 1, 1);
-      ticket_template_info_list.push(obj);
+      let ticketTitle = '欧药师智能药机';
+      let obj = AddTextContent(ticketTitle, 1, 1, 1);
+      ticketTemplateInfoList.push(obj);
       //间隔
-      let arr = AddBlankLine(0, 1, ticket_template_info_list);
-      ticket_template_info_list = ticket_template_info_list.concat(arr);
+      let arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+      ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
       //日期
       let op_date_text =
         '日  期: ' + parseTime(new Date(), '{y}-{m}-{d} {h}:{i}');
-      obj = AddTextContent(op_date_text, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(op_date_text, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //药机名称
-      let equipmentName = '药  机: ' + info.name;
-      obj = AddTextContent(equipmentName, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      let equipmentName = '药  机: ' + info.equipmentGroupInfo.name;
+      obj = AddTextContent(equipmentName, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //流水号
-      let serial_no = '流水号: ' + orderInfo.serial_no;
-      obj = AddTextContent(serial_no, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      let serialNo = '流水号: ' + orderInfo.serialNo;
+      obj = AddTextContent(serialNo, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //间隔
-      arr = AddBlankLine(0, 1, ticket_template_info_list);
-      ticket_template_info_list = ticket_template_info_list.concat(arr);
+      arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+      ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
 
-      let recode_title = '编号/品名           单价        数量       小计';
-      obj = AddTextContent(recode_title, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      let recodeTitle = '编号/品名           单价        数量       小计';
+      obj = AddTextContent(recodeTitle, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //分隔符
       let separator = '-----------------------------------------------';
-      obj = AddTextContent(separator, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(separator, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
       let cartList = cart.cartList;
       let i = 0;
@@ -338,28 +377,25 @@ class wait extends Component {
           continue;
         }
         let content = `${i + 1}.${productInfo.name}`;
-        obj = AddTextContent(content, 0, 0, 1, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
+        obj = AddTextContent(content, 0, 0, 1, ticketTemplateInfoList);
+        ticketTemplateInfoList.push(obj);
 
-        // let unit_price = customerFlag
-        //   ? productInfo.customer_price
-        //   : productInfo.price;
-        let unit_price = productInfo.price;
-        let price = (unit_price / 100).toFixed(2).toString();
+        let unitPrice = productInfo.price;
+        let price = (unitPrice / 100).toFixed(2).toString();
         let count = productInfo.num.toString();
-        let amount = ((unit_price * productInfo.num) / 100)
+        let amount = ((unitPrice * productInfo.num) / 100)
           .toFixed(2)
           .toString();
         content =
           price.padStart(24, ' ') +
           count.padStart(12, ' ') +
           amount.padStart(12, ' ');
-        obj = AddTextContent(content, 0, 0, 0, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
+        obj = AddTextContent(content, 0, 0, 0, ticketTemplateInfoList);
+        ticketTemplateInfoList.push(obj);
 
         content = `规    格：${productInfo.specification || ' '}`;
-        obj = AddTextContent(content, 0, 0, 0, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
+        obj = AddTextContent(content, 0, 0, 0, ticketTemplateInfoList);
+        ticketTemplateInfoList.push(obj);
 
         /*content = `批    号：${productInfo.batch_number || ' '}`;
         obj = AddTextContent(content, 0, 0, 0, ticket_template_info_list);
@@ -370,54 +406,41 @@ class wait extends Component {
         ticket_template_info_list.push(obj);*/
 
         content = `生产厂家：${productInfo.manufacturer || ' '}`;
-        obj = AddTextContent(content, 0, 0, 0, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
+        obj = AddTextContent(content, 0, 0, 0, ticketTemplateInfoList);
+        ticketTemplateInfoList.push(obj);
 
         //间隔
-        arr = AddBlankLine(0, 1, ticket_template_info_list);
-        ticket_template_info_list = ticket_template_info_list.concat(arr);
+        arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+        ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
         i++;
       }
 
       //分隔符
       separator = '-----------------------------------------------';
-      obj = AddTextContent(separator, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(separator, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
-      let total_product_count = `数量合计：${cart.productNum}`;
-      obj = AddTextContent(
-        total_product_count,
-        0,
-        0,
-        0,
-        ticket_template_info_list,
-      );
-      ticket_template_info_list.push(obj);
+      let totalProductCount = `数量合计：${cart.productNum}`;
+      obj = AddTextContent(totalProductCount, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
       let total_amount = `金额合计：${(cart.totalPrice / 100).toFixed(2)}`;
-      obj = AddTextContent(total_amount, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(total_amount, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
       //间隔
-      arr = AddBlankLine(0, 1, ticket_template_info_list);
-      ticket_template_info_list = ticket_template_info_list.concat(arr);
+      arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+      ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
 
-      let phone = `客服电话：${info.equipment_group_info.phone || ' '}`;
-      obj = AddTextContent(phone, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      let phone = `客服电话：${info.equipmentGroupInfo.phone || ' '}`;
+      obj = AddTextContent(phone, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
-      if (info.equipment_group_info.merchant_qr_code) {
-        let image = await getBase64(
-          $conf.resource + info.equipment_group_info.merchant_qr_code,
-        );
-        obj = AddImageContent(image, 1, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
-      }
       let remark = '谢谢惠顾，欢迎再次使用！';
-      obj = AddTextContent(remark, 1, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(remark, 1, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
-      this.printTicket(ticket_template_info_list);
+      this.printTicket(ticketTemplateInfoList);
       //alert('print success');
     } catch (e) {
       alert(e.message);
@@ -427,13 +450,11 @@ class wait extends Component {
   async print_fail(drugArr) {
     let productArr = [];
     for (let i = 0; i < drugArr.length; i++) {
-      let merchant_product_id = drugArr[i].merchant_product_id;
+      let orgProductId = drugArr[i].orgProductId;
       //成功
       if (drugArr[i].status == 2) {
         let successIndex = productArr.findIndex(
-          (item) =>
-            item.merchant_product_id === merchant_product_id &&
-            item.status == 2,
+          (item) => item.orgProductId === orgProductId && item.status == 2,
         );
         if (successIndex === -1) {
           let drug = {...drugArr[i]};
@@ -445,9 +466,7 @@ class wait extends Component {
       //失败
       else {
         let failIndex = productArr.findIndex(
-          (item) =>
-            item.merchant_product_id === merchant_product_id &&
-            item.status == 3,
+          (item) => item.orgProductId === orgProductId && item.status == 3,
         );
         if (failIndex === -1) {
           let drug = {...drugArr[i]};
@@ -461,7 +480,6 @@ class wait extends Component {
 
     try {
       let info = store.getState().equipmentInfo;
-      // let customerFlag = store.getState().customerFlag;
       let orderInfo = store.getState().orderInfo;
       console.info(
         'wait page func print_fail get state orderInfo = %o',
@@ -475,57 +493,50 @@ class wait extends Component {
         null,
       );
       //TODO log
-      if (!orderInfo.serial_no) {
-        let res = await api.getOrderInfo(orderInfo.id);
-        orderInfo.serial_no = res.serial_no || ' ';
-      }
 
-      let ticket_template_info_list = [];
+      let ticketTemplateInfoList = [];
       //标题
-      let ticket_title = '欧药师智能药机';
-      let obj = AddTextContent(ticket_title, 1, 1, 1);
-      ticket_template_info_list.push(obj);
+      let ticketTitle = '欧药师智能药机';
+      let obj = AddTextContent(ticketTitle, 1, 1, 1);
+      ticketTemplateInfoList.push(obj);
       //间隔
-      let arr = AddBlankLine(0, 1, ticket_template_info_list);
-      ticket_template_info_list = ticket_template_info_list.concat(arr);
+      let arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+      ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
       //日期
       let op_date_text =
         '日  期: ' + parseTime(new Date(), '{y}-{m}-{d} {h}:{i}');
-      obj = AddTextContent(op_date_text, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(op_date_text, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //药机名称
       let equipmentName = '药  机: ' + info.name;
-      obj = AddTextContent(equipmentName, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(equipmentName, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //流水号
-      let serial_no = '流水号: ' + orderInfo.serial_no;
-      obj = AddTextContent(serial_no, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      let serialNo = '流水号: ' + orderInfo.serialNo;
+      obj = AddTextContent(serialNo, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //间隔
-      arr = AddBlankLine(0, 1, ticket_template_info_list);
-      ticket_template_info_list = ticket_template_info_list.concat(arr);
+      arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+      ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
 
       let recode_title = '编号/品名       单价      数量     小计     出药';
-      obj = AddTextContent(recode_title, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(recode_title, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
       //分隔符
       let separator = '-----------------------------------------------';
-      obj = AddTextContent(separator, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(separator, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
       for (let i = 0; i < productArr.length; i++) {
         let productInfo = productArr[i];
         let content = `${i + 1}.${productInfo.name}`;
-        obj = AddTextContent(content, 0, 0, 1, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
+        obj = AddTextContent(content, 0, 0, 1, ticketTemplateInfoList);
+        ticketTemplateInfoList.push(obj);
 
-        // let unit_price = customerFlag
-        //   ? productInfo.customer_price
-        //   : productInfo.price;
-        let unit_price = productInfo.price;
-        let price = (unit_price / 100).toFixed(2).toString();
+        let unitPrice = productInfo.price;
+        let price = (unitPrice / 100).toFixed(2).toString();
         let count = productInfo.num.toString();
-        let amount = ((unit_price * productInfo.num) / 100)
+        let amount = ((unitPrice * productInfo.num) / 100)
           .toFixed(2)
           .toString();
         let result = productInfo.status == 2 ? '成功' : '失败';
@@ -534,65 +545,66 @@ class wait extends Component {
           count.padStart(10, ' ') +
           amount.padStart(9, ' ') +
           result.padStart(7, ' ');
-        obj = AddTextContent(content, 0, 0, 0, ticket_template_info_list);
-        ticket_template_info_list.push(obj);
+        obj = AddTextContent(content, 0, 0, 0, ticketTemplateInfoList);
+        ticketTemplateInfoList.push(obj);
 
         //间隔
-        arr = AddBlankLine(0, 1, ticket_template_info_list);
-        ticket_template_info_list = ticket_template_info_list.concat(arr);
+        arr = AddBlankLine(0, 1, ticketTemplateInfoList);
+        ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
       }
       let remark = '取药失败，请保留小票';
-      obj = AddTextContent(remark, 1, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      obj = AddTextContent(remark, 1, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
-      let phone = `客服电话：${info.equipment_group_info.phone || ' '}`;
-      obj = AddTextContent(phone, 0, 0, 0, ticket_template_info_list);
-      ticket_template_info_list.push(obj);
+      let phone = `客服电话：${info.equipmentGroupInfo.phone || ' '}`;
+      obj = AddTextContent(phone, 0, 0, 0, ticketTemplateInfoList);
+      ticketTemplateInfoList.push(obj);
 
       try {
         //间隔
         arr = AddBlankLine(0, 1);
-        ticket_template_info_list = ticket_template_info_list.concat(arr);
+        ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
         //申请退款二维码
         let imageBase64 = await this.urlToBase64();
         obj = AddImageContent(imageBase64, 1);
-        ticket_template_info_list.push(obj);
+        ticketTemplateInfoList.push(obj);
 
         let applyDesc = '扫码申请退款';
         obj = AddTextContent(applyDesc, 1, 0, 0);
-        ticket_template_info_list.push(obj);
+        ticketTemplateInfoList.push(obj);
       } catch (e) {
         alert(e);
         console.error(e);
       }
 
-      this.printTicket(ticket_template_info_list);
+      this.printTicket(ticketTemplateInfoList);
     } catch (e) {
       alert(e.message);
     }
   }
 
-  printTicket(ticket_template_info_list) {
+  printTicket(ticketTemplateInfoList) {
     if (Conf.debug) {
       return;
     }
-    for (let i = 0; i < ticket_template_info_list.length; i++) {
-      let item = ticket_template_info_list[i];
+    for (let i = 0; i < ticketTemplateInfoList.length; i++) {
+      let item = ticketTemplateInfoList[i];
       if (item.type === 'text') {
         NativeModules.RaioApi.printText(
           item.str,
           item.align,
           item.size,
           item.bold,
-          i === ticket_template_info_list.length - 1 ? 1 : 0,
+          i === ticketTemplateInfoList.length - 1 ? 1 : 0,
           (res) => {},
         );
       }
       if (item.type === 'image') {
+        //二维码退款走此流程
         NativeModules.RaioApi.printImage(
           item.image_info,
           item.align,
-          i === ticket_template_info_list.length - 1 ? 1 : 0,
+          i === ticketTemplateInfoList.length - 1 ? 1 : 0,
           (res) => {},
         );
       }
@@ -617,7 +629,7 @@ class wait extends Component {
               x,
               y,
             };
-            this.quene.add(obj);
+            this.queue.add(obj);
           } else {
             reject(res);
           }
@@ -635,16 +647,18 @@ class wait extends Component {
       if (cartList[key].num > 0) {
         for (let i = 0; i < cartList[key].num; i++) {
           let obj = {
-            merchant_product_id: key,
+            orgProductId: key,
             ...cartList[key],
             status: 1,
           };
-          obj.num = 1;
+          obj.num = 1; //格式化后的数组的每个单位的药品数量为一，为每次出一个单位的药品提供数据支持
           drugArr.push(obj);
         }
       }
     }
+    console.info('wait------page', drugArr);
     this.setState({drugArr: drugArr});
+
     return drugArr;
   }
 
@@ -652,13 +666,10 @@ class wait extends Component {
     switch (status) {
       case 1:
         return '正在取药';
-        break;
       case 2:
         return '取药完成';
-        break;
       case 3:
         return '取药失败';
-        break;
     }
   }
 
@@ -683,8 +694,10 @@ class wait extends Component {
           width: '100%',
         }}>
         <TopBar
-          disableCount={true}
+          // disableCount={true}
+          count={90000}
           hideBack={true}
+          // hideBack={false}
           pageName="等待取药"
           navigation={this.props.navigation}
         />
@@ -718,7 +731,7 @@ class wait extends Component {
                   height: p2dHeight(200),
                   marginLeft: p2dWidth(40),
                 }}
-                source={{uri: $conf.resource_oss + item.home_thumb}}
+                source={{uri: Conf.resource_fdfs + item.homeThumbUrl}}
               />
               <Text
                 style={{
@@ -742,7 +755,6 @@ class wait extends Component {
             </View>
           ))}
         </ScrollView>
-
         <View style={{position: 'absolute', opacity: 0}}>
           {this.state.applyRefundUrl ? (
             <QRCode

@@ -1,27 +1,17 @@
 import React, {Component} from 'react';
 import {store} from '../store/store';
-import {clearCart, upgradeEquipmentInfo, upgradeStatusFlag} from '../action';
 import {
   Animated,
   Easing,
   ImageBackground,
   TouchableOpacity,
-  View,
   Image,
   Text,
-  BackHandler,
-  Modal,
   StyleSheet,
-  Alert,
-  Button,
-  TextInput,
-  NativeModules,
 } from 'react-native';
-import api from '../js/cloudApi';
 import {p2dHeight, p2dWidth, parseTime} from '../js/utils';
 
 import OperateModal from '../components/operator';
-import UpgradeModal from '../components/upgrade';
 import Conf from '../js/conf';
 
 class home extends Component {
@@ -39,14 +29,13 @@ class home extends Component {
     this.clickTimer = null;
     this.clickIndex = 0;
     this.animationIndex = 0;
-    this.checkAppVersionTimer = null;
   }
 
   async componentDidMount() {
     console.debug('go to page 【home】');
 
     let info = store.getState().equipmentInfo;
-    let addr = info.equipment_group_info.addr || '';
+    let addr = info.equipmentGroupInfo.addr || '';
     let date = parseTime(new Date(), '{y}-{m}-{d}  {h}:{i}');
     let no = info.no || '';
     this.setState({addr, date, no});
@@ -55,7 +44,6 @@ class home extends Component {
       this.setState({date: nowDate});
     }, 60000);
 
-    this.checkAppVersion(info.mac);
     this.startAnimation();
   }
   //动画循环
@@ -83,9 +71,6 @@ class home extends Component {
     }
     if (this.clickTimer) {
       clearTimeout(this.clickTimer);
-    }
-    if (this.checkAppVersionTimer) {
-      clearTimeout(this.checkAppVersionTimer);
     }
   }
 
@@ -115,48 +100,6 @@ class home extends Component {
     this.props.navigation.navigate('setting');
   }
 
-  async checkAppVersion(mac) {
-    try {
-      NativeModules.RaioApi.debug(
-        {
-          msg: 'home page check app version start',
-          method: 'home.checkAppVersion',
-        },
-        null,
-      );
-      let data = await api.getUpgradeInfo({mac, app_version: Conf.appVersion});
-      NativeModules.RaioApi.debug(
-        {
-          msg: `home page getUpgradeInfo success, data=${JSON.stringify(data)}`,
-          method: 'home.checkAppVersion',
-        },
-        null,
-      );
-      if (data && data.app_version_info) {
-        if (
-          data.app_version_info.refresh_version &&
-          data.app_version_info.refresh_version !=
-            data.app_version_info.current_version
-        ) {
-          this.setState({upgradeData: data.app_version_info});
-          this.refs.upModal.showModal();
-        }
-      }
-    } catch (e) {
-      NativeModules.RaioApi.error(
-        {
-          msg: `home page checkAppVersion error=${e.message}`,
-          method: 'home.checkAppVersion',
-        },
-        null,
-      );
-    }
-    NativeModules.RaioApi.debug(
-      {msg: 'home page check app version end', method: 'home.checkAppVersion'},
-      null,
-    );
-  }
-
   render() {
     const styles = {
       textStyle: {
@@ -182,7 +125,6 @@ class home extends Component {
           }}
           source={require('../assets/location.png')}
         />
-
         <Text
           numberOfLines={1}
           style={{
@@ -229,7 +171,6 @@ class home extends Component {
           }}>
           Welcome to the Self-service Pharmacy
         </Text>
-
         <TouchableOpacity
           style={{
             position: 'absolute',
@@ -239,6 +180,7 @@ class home extends Component {
             height: p2dHeight(360),
           }}
           onPress={() => this.props.navigation.navigate('list')}>
+          {/* // onPress={() => this.props.navigation.navigate('out')}> */}
           <Animated.View
             style={{
               width: p2dWidth(360),
@@ -254,135 +196,6 @@ class home extends Component {
             />
           </Animated.View>
         </TouchableOpacity>
-
-        {/* <TouchableOpacity
-          style={{
-            position: 'absolute',
-            right: p2dWidth(140),
-            bottom: p2dHeight(930),
-            width: p2dWidth(360),
-            height: p2dHeight(360),
-          }}
-          onPress={() => this.props.navigation.navigate('code')}>
-          <Animated.View
-            style={{
-              width: p2dWidth(360),
-              height: p2dWidth(360),
-              transform: [{scale: this.state.scaleValue}],
-            }}>
-            <Image
-              style={{
-                width: p2dWidth(360),
-                height: p2dWidth(360),
-              }}
-              source={require('../assets/codeBtn.png')}
-            />
-          </Animated.View>
-        </TouchableOpacity> */}
-
-        {/* <View style={customStyle.mtContainer}>
-          <View style={customStyle.mtHeader}>
-            <View style={customStyle.mtLogo}>
-              <Image
-                style={{width: '100%', height: '100%'}}
-                source={require('../assets/mt_logo.png')}
-              />
-            </View>
-            <Text style={customStyle.mtTitle}>骑手取药流程</Text>
-          </View>
-          <ImageBackground
-            style={{marginTop: p2dHeight(44)}}
-            source={require('../assets/mt_bg.png')}>
-            <View style={customStyle.mtContent}>
-              <View style={customStyle.mtLeft} />
-              <View style={customStyle.mtRight} />
-              <View style={customStyle.mtStep}>
-                <View style={customStyle.mtItem}>
-                  <View style={customStyle.mtCircle}>
-                    <Text
-                      style={{
-                        fontSize: p2dWidth(36),
-                        lineHeight: p2dWidth(42),
-                        fontWeight: 'bold',
-                        color: '#FF9E00',
-                      }}>
-                      1
-                    </Text>
-                  </View>
-                  <View style={{display: 'flex', flexDirection: 'row'}}>
-                    <Text style={customStyle.mtStepText}>点击“</Text>
-                    <Text
-                      style={[customStyle.mtStepText, customStyle.mtStepText2]}>
-                      凭码取药
-                    </Text>
-                    <Text style={customStyle.mtStepText}>”</Text>
-                  </View>
-                </View>
-                <View style={customStyle.mtItem}>
-                  <View style={customStyle.mtCircle}>
-                    <Text
-                      style={{
-                        fontSize: p2dWidth(36),
-                        lineHeight: p2dWidth(42),
-                        fontWeight: 'bold',
-                        color: '#FF9E00',
-                      }}>
-                      2
-                    </Text>
-                  </View>
-                  <View>
-                    <View style={{display: 'flex', flexDirection: 'row'}}>
-                      <Text style={customStyle.mtStepText}>输入取药码</Text>
-                      <Text style={customStyle.mtStepText1}>
-                        (订单号后六位)
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'flex-end',
-                      }}>
-                      <Text style={customStyle.mtStepText3}>
-                        示例:114581610093
-                      </Text>
-                      <Text style={customStyle.mtStepText4}>123456</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={customStyle.mtItem}>
-                  <View style={customStyle.mtCircle}>
-                    <Text
-                      style={{
-                        fontSize: p2dWidth(36),
-                        lineHeight: p2dWidth(42),
-                        fontWeight: 'bold',
-                        color: '#FF9E00',
-                      }}>
-                      3
-                    </Text>
-                  </View>
-                  <Text style={customStyle.mtStepText}>等待出药</Text>
-                </View>
-                <View style={customStyle.mtItem}>
-                  <View style={customStyle.mtCircle}>
-                    <Text
-                      style={{
-                        fontSize: p2dWidth(36),
-                        lineHeight: p2dWidth(42),
-                        fontWeight: 'bold',
-                        color: '#FF9E00',
-                      }}>
-                      4
-                    </Text>
-                  </View>
-                  <Text style={customStyle.mtStepText}>核对小票信息</Text>
-                </View>
-              </View>
-            </View>
-          </ImageBackground>
-        </View> */}
-
         <Text
           style={{
             position: 'absolute',
@@ -417,12 +230,11 @@ class home extends Component {
           }}
           onPress={() => this.addClickIndex()}
         />
-
         <OperateModal
           ref="opModal"
           callback={this.confirmCallback.bind(this)}
         />
-        <UpgradeModal ref="upModal" upgradeData={this.state.upgradeData} />
+        {/* <UpgradeModal ref="upModal" upgradeData={this.state.upgradeData} /> */}
       </ImageBackground>
     );
   }

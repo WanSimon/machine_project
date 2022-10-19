@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {Text, View, Image, TouchableOpacity} from 'react-native';
 
 import {p2dHeight, p2dWidth} from '../js/utils';
-import {clearCart, upgradeCart, clearCustomer} from '../action';
+import {clearCart, updateLoginStatus, updateSceneStr} from '../action';
 import {store} from '../store/store';
 
 class TopBar extends Component {
@@ -49,9 +49,12 @@ class TopBar extends Component {
 
   goHome() {
     //清空购物车
-    const action = clearCart();
+    let action = clearCart();
     store.dispatch(action);
-
+    action = updateSceneStr('');
+    store.dispatch(action);
+    action = updateLoginStatus(false);
+    store.dispatch(action);
     this.props.navigation.navigate('home');
   }
   goBack() {

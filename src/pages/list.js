@@ -13,6 +13,7 @@ import {
   OrderSource,
   OrderStatus,
   PayStatus,
+  PayType,
   PickUpType,
 } from '../js/common';
 import {connect} from 'react-redux';
@@ -27,7 +28,6 @@ class list extends Component {
       cartList: {},
       productNum: 0,
       totalPrice: 0,
-      // totalCustomerPrice: 0,
       searchText: '',
       allDrag: [],
       dragArr: [],
@@ -40,12 +40,13 @@ class list extends Component {
     console.debug('go to page 【list】');
 
     let cart = this.props.cart;
-    let equipmentInfo = this.props.equipmentInfo;
-    let allDrag = equipmentInfo.product_list.sort((a, b) => {
+    // let equipmentInfo = this.props.equipmentInfo;
+    let formattedEquipmentInfo = store.getState().equipmentInfo.productList;
+
+    // let allDrag = formattedEquipmentInfo;
+    let allDrag = formattedEquipmentInfo.sort((a, b) => {
       return (
-        b.real_stock -
-        (b.lock_stock || 0) -
-        (a.real_stock - (a.lock_stock || 0))
+        b.realStock - (b.lockStock || 0) - (a.realStock - (a.lockStock || 0))
       );
     });
 
@@ -53,11 +54,10 @@ class list extends Component {
       cartList: cart.cartList,
       productNum: cart.productNum,
       totalPrice: cart.totalPrice,
-      // totalCustomerPrice: cart.totalCustomerPrice,
       allDrag,
       dragArr: allDrag,
     });
-    alert(store.getState().sceneStr);
+    // alert(store.getState().sceneStr);
     loadSound(require('../assets/mp3/chooseProduct.mp3'));
   }
 
@@ -68,23 +68,19 @@ class list extends Component {
   setCartList(cartList) {
     let productNum = 0,
       totalPrice = 0;
-    // totalCustomerPrice = 0;
     for (let key in cartList) {
       productNum += cartList[key].num;
       totalPrice += cartList[key].num * cartList[key].price;
-      // totalCustomerPrice += cartList[key].num * cartList[key].customer_price;
     }
     this.setState({
       cartList: cartList,
       productNum,
       totalPrice,
-      // totalCustomerPrice,
     });
     let action = upgradeCart({
       cartList: cartList,
       productNum,
       totalPrice,
-      // totalCustomerPrice,
     });
     store.dispatch(action);
   }
@@ -106,15 +102,13 @@ class list extends Component {
         let dragArr = this.state.allDrag
           .filter(
             (drag) =>
-              drag.merchant_product_info.product_info.name.indexOf(
-                searchText,
-              ) !== -1,
+              drag.orgProductInfo.productInfo.name.indexOf(searchText) !== -1,
           )
           .sort((a, b) => {
             return (
-              b.real_stock -
-              (b.lock_stock || 0) -
-              (a.real_stock - (a.lock_stock || 0))
+              b.realStock -
+              (b.lockStock || 0) -
+              (a.realStock - (a.lockStock || 0))
             );
           });
         this.setState({dragArr});
@@ -122,113 +116,73 @@ class list extends Component {
     }
   }
 
-  //药品品类查询
-  setType(type) {
-    this.setState({type});
-    let productList = this.state.allDrag.filter((item) => {
-      let r1 = true,
-        r2 = true;
-      if (this.state.searchText) {
-        r1 =
-          item.merchant_product_info.product_info.name.indexOf(
-            this.state.searchText,
-          ) !== -1;
-      }
-      //非全部
-      if (type !== '1') {
-        r2 = false;
-        let index = $conf.typeArr.findIndex((item) => item.id === type);
-        let category = $conf.typeArr[index];
-        let idSet = new Set([category.id, ...category.children]);
-        let category_list_info =
-          item.merchant_product_info.product_info.category_list_info;
-        if (category_list_info && Array.isArray(category_list_info)) {
-          for (let j = 0; j < category_list_info.length; j++) {
-            if (idSet.has(category_list_info[j].id)) {
-              r2 = true;
-              break;
-            }
-          }
-        }
-      }
-      return r1 && r2;
-    });
-    this.setState({dragArr: productList});
-  }
-
   goOrder() {
     //生成订单
-    this.generateOrder();
 
-    // let customerFlag = store.getState().customerFlag;
-    //会员
-    // if (customerFlag) {
-    // this.props.navigation.navigate('customerOrder');
-    // }
-    //非会员
-    // else {
-    this.props.navigation.navigate('order');
-    // }
+    this.generateOrder();
+    this.props.navigation.navigate('login');
   }
 
   //生成订单
   generateOrder() {
-    let equipmentInfo = store.getState().equipmentInfo;
+    // let equipmentInfo = store.getState().equipmentInfo;
+
     let cart = store.getState().cart;
     this.setState({
       totalPrice: cart.totalPrice,
-      // totalCustomerPrice: cart.totalCustomerPrice,
     });
 
-    let order_detail_info_list = [];
+    console.info('cartList-------------', cart.cartList);
+    let orderDetailInfoList = [];
     for (let key in cart.cartList) {
       let p = cart.cartList[key];
       if (p.num === 0) {
         continue;
       }
       let obj = {
-        merchant_product_id: key,
+        orgProductId: key,
         amount: p.price * p.num,
-        // customer_amount: p.customer_price * p.num,
-        unit_price: p.price,
-        // customer_price: p.customer_price,
-        product_count: p.num,
+        unitPrice: p.price,
+        productCount: p.num,
       };
-      order_detail_info_list.push(obj);
+      orderDetailInfoList.push(obj);
     }
 
-    let order_id = uuid.v4();
-    //生成订单id
-    let trade_no = uuid.v4().replace(/-/g, '');
-    this.setState({order_id, trade_no});
+    let orderId = uuid.v4();
+    let tradeNo = uuid.v4().replace(/-/g, '');
+    this.setState({orderId, tradeNo});
     console.info(
-      `list page first generate order_id=${order_id}, trade_no=${trade_no}`,
+      `list page first generate orderId=${orderId}, tradeNo=${tradeNo}`,
     );
     NativeModules.RaioApi.debug(
       {
-        msg: `list page first generate order_id=${order_id}, trade_no=${trade_no}`,
+        msg: `list page first generate orderId=${orderId}, tradeNo=${tradeNo}`,
         method: 'list.generateOrder',
       },
       null,
     );
 
     let orderInfo = {};
-    orderInfo.id = order_id;
-    orderInfo.inner_order_no = trade_no;
-    orderInfo.merchant_id = equipmentInfo.equipment_group_info.merchant_id;
-    orderInfo.equipment_id = equipmentInfo.id;
-    orderInfo.amount = cart.totalPrice;
-    // orderInfo.customer_amount = cart.totalCustomerPrice;
-    orderInfo.order_status = OrderStatus.OS_NoPay;
-    orderInfo.pay_status = PayStatus.PS_NoPay;
-    orderInfo.buy_way = BuyWay.BW_Buy;
-    orderInfo.order_source = OrderSource.OSRC_Equipment;
-    // orderInfo.customer_id = '';
-    orderInfo.pick_up_type = PickUpType.PUP_Scan_QRCode;
-    orderInfo.id_card = '';
-    orderInfo.medical_insurance_card = '';
-    orderInfo.order_detail_info_list = order_detail_info_list;
-
+    orderInfo.orderId = orderId;
+    orderInfo.innerOrderNo = tradeNo;
+    orderInfo.orderStatus = OrderStatus.OS_NoPay; //
+    orderInfo.payStatus = PayStatus.PS_NoPay; ///
+    orderInfo.buyWay = BuyWay.BW_Buy; //
+    orderInfo.orderSource = OrderSource.OSRC_Equipment; //
+    orderInfo.payType = PayType.PT_Wechat;
+    orderInfo.pickUpType = PickUpType.PUP_Scan_QRCode;
+    orderInfo.idCard = '';
+    orderInfo.medicalInsuranceCard = '';
+    orderInfo.orgId = store.getState().equipmentInfo.equipmentGroupInfo.orgId;
+    orderInfo.equipmentId =
+      store.getState().equipmentInfo.equipmentProductInfo.equipmentId;
+    orderInfo.orderDetailInfoList = orderDetailInfoList;
+    orderInfo.amount = orderDetailInfoList.reduce((pre, cur) => {
+      return pre + cur.amount;
+    }, 0);
+    orderInfo.payAmount = orderInfo.amount;
+    orderInfo.lockProduct = 0; //暂时不用
+    orderInfo.lockExpireDate = ''; //暂时不用
     console.info('list page upgrade reducex orderInfo = %o', orderInfo);
     NativeModules.RaioApi.debug(
       {
@@ -265,14 +219,13 @@ class list extends Component {
           searchText={this.state.searchText}
           dragArr={this.state.dragArr}
           type={this.state.type}
-          setType={this.setType.bind(this)}
+          // setType={this.setType.bind(this)}
           setCartList={this.setCartList.bind(this)}
         />
         <BottomBar
           navigate={this.props.navigation.navigate}
           productNum={this.state.productNum}
           totalPrice={this.state.totalPrice}
-          // totalCustomerPrice={this.state.totalCustomerPrice}
           goOrder={() => this.goOrder()}
           setCartVisible={this.setCartVisible.bind(this)}
         />

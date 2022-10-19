@@ -11,23 +11,30 @@ const initialState = {
     cartList: {},
     productNum: 0,
     totalPrice: 0,
-    // totalCustomerPrice: 0,
   },
-  //是否为会员
-  // customerFlag: true,
   //订单数据
   orderInfo: {},
 
-  //取药码订单
-  codeOrder: {
-    cartList: {},
-    orderInfo: {},
-    productNum: 0,
-  },
+  //取药码订单ZZ
+  // codeOrder: {
+  //   cartList: {},
+  //   orderInfo: {},
+  //   productNum: 0,
+  // },
 
   token: '',
   //场景标识，发送给后端判断用户是否登录。
-  sceneStr: '123',
+  sceneStr: '',
+  loginStatus: false,
+  // userId: 'd6575b3825c24c26a7ee2b1ad385e411',
+  userId: '',
+  mobile: '',
+  serialNo: '',
+  orderId: '',
+  logged: {
+    userId: '',
+    mobile: '',
+  },
 };
 
 let homeReducer = (state = initialState, action) => {
@@ -65,23 +72,10 @@ let homeReducer = (state = initialState, action) => {
         cartList: {},
         productNum: 0,
         totalPrice: 0,
-        // totalCustomerPrice: 0,
       },
       orderInfo: {},
-      // customerFlag: false,
-      codeOrder: {
-        cartList: {},
-        orderInfo: {},
-        productNum: 0,
-      },
     };
   }
-  // if (action.type === ActionType.ACTION_ADD_CUSTOMER) {
-  //   return {
-  //     ...state,
-  //     customerFlag: true,
-  //   };
-  // }
 
   if (action.type === ActionType.ACTION_UPGRADE_ORDER) {
     return {
@@ -90,12 +84,12 @@ let homeReducer = (state = initialState, action) => {
     };
   }
 
-  if (action.type === ActionType.ACTION_UPGRADE_CODE_ORDER) {
-    return {
-      ...state,
-      codeOrder: action.payload,
-    };
-  }
+  // if (action.type === ActionType.ACTION_UPGRADE_CODE_ORDER) {
+  //   return {
+  //     ...state,
+  //     codeOrder: action.payload,
+  //   };
+  // }
 
   if (action.type === ActionType.ACTION_UPDATE_SCENE_STR) {
     return {
@@ -107,7 +101,47 @@ let homeReducer = (state = initialState, action) => {
   if (action.type === ActionType.ACTION_UPDATE_TOKEN) {
     return {
       ...state,
-      token: action.token,
+      token: action.payload,
+    };
+  }
+  if (action.type === ActionType.ACTION_UPDATE_LOGIN_STATUS) {
+    return {
+      ...state,
+      loginStatus: action.payload,
+    };
+  }
+  if (action.type === ActionType.ACTION_UPDATE_USER_ID) {
+    return {
+      ...state,
+      userId: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_MOBILE) {
+    return {
+      ...state,
+      mobile: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_ORDER_ID) {
+    return {
+      ...state,
+      orderId: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_SERIAL_NO) {
+    return {
+      ...state,
+      serialNo: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_LOGGED) {
+    return {
+      ...state,
+      logged: action.payload,
     };
   }
 };

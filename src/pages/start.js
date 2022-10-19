@@ -29,6 +29,7 @@ class start extends Component {
     this.clickTimer = null;
     this.clickIndex = 0;
     this.heartbeatFailCount = 0;
+    this.token = '';
   }
 
   async componentDidMount() {
@@ -53,6 +54,7 @@ class start extends Component {
 
     try {
       await this.retry();
+      console.log('retry finsished');
     } catch (e) {
       console.error('start page componentDidMount retry error, err=%o', e);
       NativeModules.RaioApi.error(
@@ -67,10 +69,8 @@ class start extends Component {
 
   async setToken() {
     let res = await api.getToken({appId: '1', appSecret: '1'});
-    console.log(res, 'res.setToken');
-    const action = updateToken(res.data.token);
+    const action = updateToken(res.token);
     store.dispatch(action);
-    console.log(res, 'setToken-end');
   }
 
   async retry() {
@@ -78,8 +78,8 @@ class start extends Component {
       clearTimeout(this.retryTimer);
     }
     let equipmentInfo = await this.getEquipmentInfo();
-    if (equipmentInfo?.id) {
-      this.heartbeat(equipmentInfo.id);
+    if (equipmentInfo?.equipmentId) {
+      this.heartbeat(equipmentInfo.equipmentId);
     } else {
       this.retryTimer = setTimeout(async () => {
         this.retry();
@@ -186,20 +186,21 @@ class start extends Component {
     try {
       let mac = await this.getMac();
       let res = await api.getEquipmentInfo(null, mac);
-      if (res?.equipment_info) {
-        let equipmentInfo = res.equipment_info;
+      if (res?.equipmentInfo) {
+        res.equipmentInfo;
+        let equipmentInfo = res.equipmentInfo;
         //获取设备详情
         const equipmentInfoDetailRes = await api.getEquipmentDetail(
-          equipmentInfo.id,
+          equipmentInfo.equipmentId,
           equipmentInfo.mac,
         );
         if (
           equipmentInfoDetailRes &&
-          equipmentInfoDetailRes.equipment_detail_info
+          equipmentInfoDetailRes.equipmentDetailInfo
         ) {
           console.info(
             'start page, getEquipmentInfo,getEquipmentDetail success %o, %o',
-            equipmentInfo,
+            // equipmentInfo,
             equipmentInfoDetailRes,
           );
           NativeModules.RaioApi.debug(
@@ -212,13 +213,13 @@ class start extends Component {
             null,
           );
           const action = await upgradeEquipmentInfo(
-            equipmentInfoDetailRes.equipment_detail_info,
+            equipmentInfoDetailRes.equipmentDetailInfo,
           );
           store.dispatch(action);
         } else {
           console.info(
             'start page, getEquipmentInfo,getEquipmentDetail something wrong, %o, %o',
-            equipmentInfo,
+            // equipmentInfo,
             equipmentInfoDetailRes,
           );
           NativeModules.RaioApi.debug(
@@ -233,7 +234,7 @@ class start extends Component {
         }
         return equipmentInfo;
       } else {
-        console.info('start page, getEquipmentInfo something wrong, %o', res);
+        // console.info('start page, getEquipmentInfo something wrong, %o', res); //11
         NativeModules.RaioApi.debug(
           {
             msg: `start page, getEquipmentInfo something wrong, ${JSON.stringify(
@@ -259,14 +260,14 @@ class start extends Component {
     }
   }
 
-  async heartbeat(equipment_id) {
+  async heartbeat(equipmentId) {
     if (this.timer) {
       clearTimeout(this.timer);
     }
     this.timer = setTimeout(async () => {
-      this.heartbeat(equipment_id);
+      this.heartbeat(equipmentId);
     }, $conf.heartbeatInterval);
-    let res = await api.heartbeat(equipment_id, 0, 0);
+    let res = await api.heartbeat(equipmentId, 0, 0);
     if (!res) {
       this.heartbeatFailCount++;
       //心跳失败超过3次
@@ -276,8 +277,8 @@ class start extends Component {
     } else {
       this.heartbeatFailCount = 0;
     }
-    if (res && res.hasOwnProperty('equipment_status')) {
-      if (res.equipment_status === EquipmentStatus.ES_Stop) {
+    if (res && res.hasOwnProperty('equipmentStatus')) {
+      if (res.equipmentStatus === EquipmentStatus.ES_Stop) {
         //todo 设备停用
         console.debug('equipment has been stopped');
         this.props.navigation.navigate('start');
