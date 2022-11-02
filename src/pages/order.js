@@ -32,6 +32,7 @@ class order extends Component {
       formattedPatientList: [],
       drugArr: [],
       mobile: '',
+      submitable: true,
     };
   }
 
@@ -134,6 +135,7 @@ class order extends Component {
   }
 
   async submitOrder() {
+    this.setState({submitable: false});
     const {doctorId, patientId} = this.state;
     if (!doctorId) {
       Alert.alert('关联医生不存在,请重新审核订单信息');
@@ -190,14 +192,20 @@ class order extends Component {
       patientId: patientId,
       orgId: store.getState().equipmentInfo.equipmentGroupInfo.orgId,
     });
-    console.info('doctor---getPatientRelatedDoctor', doctor.doctorInfoList[0]);
+
+    if (doctor.doctorInfoList.length === 0) {
+      this.setState({
+        doctorId: '',
+        doctorName: '',
+      });
+    }
+    console.info('doctor---getPatientRelatedDoctor', doctor);
     let doctorDetail = doctor.doctorInfoList[0];
 
     this.setState({
       doctorId: doctorDetail.doctorId,
       doctorName: doctorDetail.name,
     });
-    // doctor.doctorInfoList[0].doctorId;
   }
 
   componentWillUnmount() {
@@ -227,8 +235,8 @@ class order extends Component {
           },
         ]}>
         <TopBar
-          // count={this.state.count}
-          count={1000000}
+          count={this.state.count}
+          // count={150}
           pageName="确认订单信息"
           hideBack={true}
           navigation={this.props.navigation}
@@ -516,6 +524,7 @@ class order extends Component {
               height: p2dHeight(90),
               marginRight: p2dWidth(30),
             }}
+            disabled={!this.state.submitable}
             onPress={() => this.submitOrder()}>
             <Text
               style={{

@@ -15,7 +15,10 @@ import TopBar from '../components/topbar';
 import {p2dWidth, parseTime} from '../js/utils';
 import Conf from '../js/conf';
 import {AddBlankLine, AddTextContent} from '../js/ticketHelper';
+import api from '../js/cloudApi';
 
+import {store} from '../store/store';
+import {upgradeEquipmentInfo} from '../action';
 class Setting extends Component {
   constructor() {
     super();
@@ -262,6 +265,83 @@ class Setting extends Component {
       }
     }
   }
+
+  async getEquipmentInfo() {
+    try {
+      let mac = await this.getMac();
+      let res = await api.getEquipmentInfo(null, mac);
+      if (res?.equipmentInfo) {
+        res.equipmentInfo;
+        let equipmentInfo = res.equipmentInfo;
+        //获取设备详情
+        const equipmentInfoDetailRes = await api.getEquipmentDetail(
+          equipmentInfo.equipmentId,
+          equipmentInfo.mac,
+        );
+        if (
+          equipmentInfoDetailRes &&
+          equipmentInfoDetailRes.equipmentDetailInfo
+        ) {
+          console.info(
+            'setting page, getEquipmentInfo,getEquipmentDetail success %o, %o',
+            // equipmentInfo,
+            equipmentInfoDetailRes,
+          );
+          NativeModules.RaioApi.debug(
+            {
+              msg: `setting page, getEquipmentInfo,getEquipmentDetail success, ${JSON.stringify(
+                equipmentInfo,
+              )}, ${JSON.stringify(equipmentInfoDetailRes)}`,
+              method: 'setting.getEquipmentInfo',
+            },
+            null,
+          );
+          const action = await upgradeEquipmentInfo(
+            equipmentInfoDetailRes.equipmentDetailInfo,
+          );
+          store.dispatch(action);
+        } else {
+          console.info(
+            'setting page, getEquipmentInfo,getEquipmentDetail something wrong, %o, %o',
+            equipmentInfoDetailRes,
+          );
+          NativeModules.RaioApi.debug(
+            {
+              msg: `setting page, getEquipmentInfo,getEquipmentDetail something wrong, ${JSON.stringify(
+                equipmentInfo,
+              )}, ${JSON.stringify(equipmentInfoDetailRes)}`,
+              method: 'setting.getEquipmentInfo',
+            },
+            null,
+          );
+        }
+        return equipmentInfo;
+      } else {
+        NativeModules.RaioApi.debug(
+          {
+            msg: `setting page, getEquipmentInfo something wrong, ${JSON.stringify(
+              res,
+            )}`,
+            method: 'setting.getEquipmentInfo',
+          },
+          null,
+        );
+      }
+    } catch (e) {
+      console.info('setting page, getEquipmentInfo fail, %o', e);
+      NativeModules.RaioApi.debug(
+        {
+          msg: `setting page, getEquipmentInfo fail, ${JSON.stringify(
+            e.message,
+          )}`,
+          method: 'setting.getEquipmentInfo',
+        },
+        null,
+      );
+      return false;
+    }
+  }
+
   exitApp() {
     Alert.alert('提示', '确定退出App?', [
       {
@@ -375,6 +455,20 @@ class Setting extends Component {
                     style={{flexShrink: 0}}
                     title="退出程序"
                     onPress={this.exitApp.bind(this)}
+                  />
+                </View>
+              </View>
+              <View style={customStyle.itemContainer3}>
+                <View style={customStyle.itemContainer4}>
+                  <View style={{flexShrink: 0, width: p2dWidth(280)}}>
+                    <Text>更新药品数据</Text>
+                  </View>
+                  <View style={{flexGrow: 1}} />
+                  <Button
+                    color="#00BFCE"
+                    style={{flexShrink: 0}}
+                    title="退出程序"
+                    onPress={this.getEquipmentInfo.bind(this)}
                   />
                 </View>
               </View>

@@ -22,7 +22,6 @@ class login extends Component {
     this.forthCodeRef = React.createRef();
 
     this.state = {
-      weixinCode: '',
       url: '',
       loginMode: 'num',
       mobile: '',
@@ -36,41 +35,37 @@ class login extends Component {
       codeStatus: 'first', //用来标志是不是首次进入页面
       selectedOutline: 0, //1代表手机号输入框,2代表验证码输入框,0代表输入框没有获得焦点，标注获得焦点的输入框
       loginOutline: false,
+      weixinCodeUrl: '',
     };
   }
 
   async componentDidMount() {
-    let res = await api.getQrCode();
     const orgId = store.getState().equipmentInfo.equipmentGroupInfo.orgId;
+    let res = await api.getQrCode(orgId);
     console.log('login', orgId, res.qrCodeInfo.sceneStr);
     drugChannel = JSON.parse(
       store.getState().equipmentInfo.equipmentTypeInfo.drugChannel,
     );
+    this.setState({weixinCodeUrl: Conf.weixinUrl + res.qrCodeInfo.ticket});
 
-    // let weixinQrcode = await WeiXinAPI.getWeiXinQrcode(res.ticket); //获取二维码
-    console.log('weixinurl--ticket', Conf.weixinUrl, res.qrCodeInfo.ticket);
-    let url = Conf.weixinUrl + res.qrCodeInfo.ticket;
-    // fetch('http://baidu.com').then((res) => console.log('baidu', res));
-    this.setState({url: url});
-    // console.log('url', url);
-    // let weixinCode =  fetch(url).then((res) => //   console.log('weixinCodeFetch', res), // );
-    // console.log('weixinCode', weixinCode);
-    //   this.setState(weixinCode);
     const action = updateSceneStr(res.qrCodeInfo.sceneStr);
     store.dispatch(action);
-    // let checkQrLogin;
+    let checkQrLogin;
+    let that = this;
+    this.checkTimer = setInterval(() => {
+      if (that.checkTimer) {
+        clearInterval(that.checkTimer);
+      }
+      checkQrLogin = api.checkQrLogin({
+        sceneStr: res.qrCodeInfo.sceneStr,
+        orgId,
+      });
+      if (checkQrLogin.status === true) {
+        clearInterval(that.checkTimer);
+        this.props.navigation.navigate('order');
+      }
+    }, 2000);
 
-    // let t = window.setTimeout(() => {
-    //   checkQrLogin = api.checkQrLogin({
-    //     sceneStr: res.qrCodeInfo.sceneStr,
-    //     orgId,
-    //   });
-    // }, 2000);
-
-    // if (checkQrLogin.code === 1000) {
-    //   window.clearTimeout(t);
-    //   this.props.navigation.navigate('order');
-    // }
     equipmentInfo = store.getState().equipmentInfo;
     console.info(
       'login-page--equipmentInfo',
@@ -157,9 +152,12 @@ class login extends Component {
     if (this.timer) {
       clearInterval(this.timer);
     }
+    if (this.checkTimer) {
+      clearInterval(this.checkTimer);
+    }
   }
   render() {
-    const {verifyCode, mobile, loginOutline, loginMode} = this.state;
+    const {verifyCode, mobile, loginOutline, loginMode, ticket} = this.state;
     return (
       <View
         style={{
@@ -250,11 +248,20 @@ class login extends Component {
             <View
               style={{
                 width: '100%',
-                backgroundColor: '#fff',
+                // backgroundColor: '#fff',
                 flexGrow: 1,
                 borderRadius: p2dWidth(40),
               }}>
-              <Image source={{uri: 'http:xxxxx.xxxx'}} style={{}}></Image>
+              <Image
+                source={{
+                  uri: this.state.weixinCodeUrl,
+                }}
+                style={{
+                  marginTop: p2dHeight(250),
+                  width: p2dWidth(450),
+                  height: p2dWidth(450),
+                  marginLeft: p2dWidth(320),
+                }}></Image>
             </View>
           ) : (
             <View
@@ -290,8 +297,9 @@ class login extends Component {
                           this.state.selectedOutline === 1
                             ? 'rgba(0,191,206,0.7)'
                             : '#8c8c8c',
-                        borderWidth: 2,
-                        borderRadius: 2,
+                        // borderWidth: 2,
+                        borderBottomWidth: 2,
+                        // borderRadius: 2,
                         letterSpacing: p2dWidth(8),
                         paddingLeft: p2dWidth(15),
                         borderStyle: 'solid',
@@ -305,7 +313,9 @@ class login extends Component {
                     }}
                     autoComplete="tel" //详情见文档
                     clearTextOnFocus={true}
-                    keyboardType="numeric" //弹出键盘类型
+                    // keyboardType="numeric" //弹出键盘类型
+
+                    keyboardType="number-pad"
                     onChangeText={(val) => {
                       this.setState({mobile: val});
                       if (verifyCode && val) {
@@ -380,13 +390,14 @@ class login extends Component {
                           : '#8c8c8c',
                       borderBottomWidth: 2,
                       borderStyle: 'solid',
-                      borderRadius: 2,
+                      // borderRadius: 2,
                       width: p2dWidth(400),
                       height: p2dWidth(100),
                       letterSpacing: p2dWidth(12),
                       fontSize: p2dWidth(32),
                     }}
-                    keyboardType="numeric" //弹出键盘类型
+                    // keyboardType="numeric" //弹出键盘类型
+                    keyboardType="number-pad"
                     onFocus={() => {
                       this.setState({selectedOutline: 2});
                     }}

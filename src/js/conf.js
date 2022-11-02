@@ -1,11 +1,12 @@
 const Conf = {
-  cloudUrl: 'http://192.168.101.71:15000/api/v1/tonsil',
+  // cloudUrl: 'http://192.168.101.71:15000/api/v1/tonsil',
+  cloudUrl: 'https://tonsil.cinyou.cn/api/v1/tonsil',
   // cloudUrl: 'http://121.36.228.192:8080/api/v1',
   // cloudUrl: 'http://192.168.101.168:15000/api/v1/tonsil',
   weixinUrl: 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=',
   //token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfaWQiOiJlcXVpcG1lbnQiLCJpYXQiOjE1NzczNTA2NTcsImV4cCI6NDczMzExMDY1N30.07xHFbB3IUAAAlcZXHXxcwahcjPUG3u3tU0Cra_nk0w',
-  token:
-    'eyJhbGciOiJSUzI1NiJ9.eyJsb2dpblR5cGUiOjEsIklEIjoiZXF1aXBtZW50IiwiZXhwIjoxMzA0NTg0NDk0MjJ9.F1_Deb2PeMld-QL4xyWzwqSTvJ-SmBezh99TvgjaRwBiGVPZNpZi4j77LSe4UHZMVKq--8ZbkeqVph3nY-OFAYAlOg-qserOLXuTQzthoHoDd1nEDdHFSzuU1GHK6t2zLJODxBq4irU094T5Fdsv1iIBELxfjVr7UXvCQRKCckpkMWef5wW0h6TlmNwGRgmnXotoC6G7uTIo6KsOItu8bzN1rlqnOg8n56IGjxXEP56INFhpA7Lcl0T83z2JbQgsJEgTGTO6zo9z2TCOR-9uJ8Ckp10k3wmNXLwMWH8w2fYyzewgIMp4nasYGrHYhDgX750Xokh3FYZHZh4W4IJhhw',
+  // token:
+  //   'eyJhbGciOiJSUzI1NiJ9.eyJsb2dpblR5cGUiOjEsIklEIjoiZXF1aXBtZW50IiwiZXhwIjoxMzA0NTg0NDk0MjJ9.F1_Deb2PeMld-QL4xyWzwqSTvJ-SmBezh99TvgjaRwBiGVPZNpZi4j77LSe4UHZMVKq--8ZbkeqVph3nY-OFAYAlOg-qserOLXuTQzthoHoDd1nEDdHFSzuU1GHK6t2zLJODxBq4irU094T5Fdsv1iIBELxfjVr7UXvCQRKCckpkMWef5wW0h6TlmNwGRgmnXotoC6G7uTIo6KsOItu8bzN1rlqnOg8n56IGjxXEP56INFhpA7Lcl0T83z2JbQgsJEgTGTO6zo9z2TCOR-9uJ8Ckp10k3wmNXLwMWH8w2fYyzewgIMp4nasYGrHYhDgX750Xokh3FYZHZh4W4IJhhw',
   //心跳间隔时间 单位 毫秒
   heartbeatInterval: 10 * 100000, //5 * 1000
   //主题色调
