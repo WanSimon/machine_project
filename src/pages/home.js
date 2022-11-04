@@ -1,18 +1,9 @@
 import React, {Component} from 'react';
 import {store} from '../store/store';
-import {
-  Animated,
-  Easing,
-  ImageBackground,
-  TouchableOpacity,
-  Image,
-  Text,
-  StyleSheet,
-} from 'react-native';
+import {Animated, TouchableOpacity, Image, Text, View} from 'react-native';
 import {p2dHeight, p2dWidth, parseTime} from '../js/utils';
 
 import OperateModal from '../components/operator';
-import Conf from '../js/conf';
 
 class home extends Component {
   constructor() {
@@ -43,25 +34,6 @@ class home extends Component {
       let nowDate = parseTime(new Date(), '{y}-{m}-{d}  {h}:{i}');
       this.setState({date: nowDate});
     }, 60000);
-
-    this.startAnimation();
-  }
-  //动画循环
-  startAnimation() {
-    Animated.sequence([
-      Animated.timing(this.state.scaleValue, {
-        toValue: 1.1,
-        duration: 800,
-        easing: Easing.ease,
-        useNativeDriver: true,
-      }),
-      Animated.timing(this.state.scaleValue, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.ease,
-        useNativeDriver: true,
-      }),
-    ]).start(() => this.startAnimation());
   }
 
   componentWillUnmount() {
@@ -74,7 +46,7 @@ class home extends Component {
     }
   }
 
-  addClickIndex() {
+  addClick() {
     if (this.clickTimer) {
       clearTimeout(this.clickTimer);
     }
@@ -111,256 +83,86 @@ class home extends Component {
       },
     };
     return (
-      <ImageBackground
-        style={{width: '100%', height: '100%'}}
-        imageStyle={{width: '100%', height: '100%'}}
-        source={require('../assets/home2.png')}>
+      <View style={{height: '100%', width: '100%', position: 'relative'}}>
         <Image
+          style={{height: p2dHeight(400), width: p2dWidth(1080)}}
+          source={require('../assets/homeTop.png')}></Image>
+        <View
           style={{
             position: 'absolute',
-            left: p2dWidth(20),
-            top: p2dHeight(24),
-            width: p2dWidth(50),
-            height: p2dHeight(50),
-          }}
-          source={require('../assets/location.png')}
-        />
-        <Text
-          numberOfLines={1}
-          style={{
-            position: 'absolute',
-            left: p2dWidth(72),
-            top: p2dHeight(27),
-            right: p2dWidth(400),
-            ...styles.textStyle,
+            left: p2dWidth(60),
+            top: p2dHeight(155),
+            // borderColor: 'black',
+            // borderWidth: 2,
           }}>
-          {this.state.addr}
-        </Text>
-        <Text
-          style={{
-            position: 'absolute',
-            right: p2dWidth(20),
-            top: p2dHeight(27),
-            ...styles.textStyle,
-          }}>
-          {this.state.date}
-        </Text>
-        <Text
-          style={{
-            width: '100%',
-            position: 'absolute',
-            textAlign: 'center',
-            top: p2dHeight(324),
-            height: p2dHeight(112),
-            lineHeight: p2dHeight(112),
-            fontSize: p2dWidth(80),
-            fontWeight: 'bold',
-            color: '#fff',
-            letterSpacing: p2dWidth(8),
-          }}>
-          欢迎使用自助药房
-        </Text>
-        <Text
-          style={{
-            position: 'absolute',
-            width: '100%',
-            textAlign: 'center',
-            top: p2dHeight(454),
-            ...styles.textStyle,
-            color: '#F9F9F9',
-          }}>
-          Welcome to the Self-service Pharmacy
-        </Text>
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            left: p2dWidth(350),
-            bottom: p2dHeight(930),
-            width: p2dWidth(360),
-            height: p2dHeight(360),
-          }}
-          onPress={() => this.props.navigation.navigate('list')}>
-          {/* // onPress={() => this.props.navigation.navigate('out')}> */}
-          <Animated.View
+          <Text
             style={{
-              width: p2dWidth(360),
-              height: p2dWidth(360),
-              transform: [{scale: this.state.scaleValue}],
+              // borderColor: 'green',
+              // borderWidth: 2,
+              fontSize: p2dWidth(45),
+              color: 'white',
+              fontWeight: 'bold',
             }}>
-            <Image
-              style={{
-                width: p2dWidth(360),
-                height: p2dWidth(360),
-              }}
-              source={require('../assets/buyBtn.png')}
-            />
-          </Animated.View>
-        </TouchableOpacity>
+            欢迎使用
+          </Text>
+          <Image
+            style={{
+              position: 'absolute',
+              top: p2dHeight(5),
+              left: p2dWidth(230),
+              width: p2dWidth(300),
+              height: p2dHeight(65),
+
+              // borderColor: 'black',
+              // borderWidth: 2,
+            }}
+            source={require('../assets/fh.png')}></Image>
+        </View>
         <Text
           style={{
-            position: 'absolute',
-            width: '100%',
-            left: p2dWidth(20),
-            bottom: p2dHeight(25),
-            height: p2dHeight(33),
-            lineHeight: p2dHeight(33),
-            fontSize: p2dWidth(24),
-            fontWeight: '500',
-            color: '#fff',
+            marginLeft: '38%',
+            letterSpacing: p2dWidth(10),
+            marginTop: p2dHeight(100),
+            color: 'rgba(66,66,66,0.7)',
+            fontSize: p2dWidth(50),
           }}>
-          设备编码：{this.state.no}
+          点击屏幕
         </Text>
-        <Image
+        <Text
           style={{
-            position: 'absolute',
-            left: p2dWidth(636),
-            bottom: p2dHeight(76),
-            width: p2dWidth(344),
-            height: p2dWidth(719),
-          }}
-          source={require('../assets/people1.png')}
-        />
+            marginLeft: '29%',
+            marginTop: p2dHeight(20),
+            letterSpacing: p2dWidth(10),
+            fontSize: p2dWidth(100),
+            fontWeight: '700',
+          }}>
+          自助购药
+        </Text>
+        <TouchableOpacity
+          style={{marginLeft: '27%', marginTop: p2dHeight(100)}}
+          onPress={() => this.props.navigation.navigate('list')}>
+          <Image
+            style={{width: p2dWidth(580), height: p2dWidth(720)}}
+            source={require('../assets/buyMedBtn.png')}></Image>
+        </TouchableOpacity>
         <TouchableOpacity
           style={{
             position: 'absolute',
-            bottom: p2dHeight(670),
-            right: p2dWidth(170),
-            width: p2dWidth(100),
-            height: p2dWidth(100),
+            left: p2dWidth(20),
+            bottom: p2dHeight(5),
+            width: p2dWidth(200),
+            height: p2dWidth(80),
           }}
-          onPress={() => this.addClickIndex()}
-        />
+          onPress={() => this.addClick()}>
+          <Text style={{fontSize: p2dWidth(50), color: 'white'}}>设备维护</Text>
+        </TouchableOpacity>
         <OperateModal
           ref="opModal"
           callback={this.confirmCallback.bind(this)}
         />
-        {/* <UpgradeModal ref="upModal" upgradeData={this.state.upgradeData} /> */}
-      </ImageBackground>
+      </View>
     );
   }
 }
-
-const customStyle = StyleSheet.create({
-  mtContainer: {
-    position: 'absolute',
-    bottom: p2dHeight(180),
-    left: p2dWidth(125),
-    width: p2dWidth(460),
-    height: p2dHeight(667),
-  },
-  mtHeader: {
-    width: p2dWidth(460),
-    height: p2dHeight(130),
-    backgroundColor: '#FFFFFF',
-    borderRadius: p2dWidth(20),
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingLeft: p2dWidth(40),
-    paddingRight: p2dWidth(50),
-  },
-  mtLogo: {
-    width: p2dHeight(63),
-    height: p2dWidth(50),
-  },
-  mtTitle: {
-    fontSize: p2dWidth(42),
-    fontWeight: '800',
-    color: '#333333',
-    lineHeight: p2dWidth(59),
-    letterSpacing: p2dWidth(4),
-  },
-  mtContent: {
-    width: p2dWidth(460),
-    height: p2dWidth(496),
-    position: 'relative',
-    paddingTop: p2dWidth(81),
-    paddingBottom: p2dWidth(72),
-  },
-  mtLeft: {
-    position: 'absolute',
-    top: p2dWidth(-55),
-    left: p2dWidth(26),
-    width: p2dWidth(16),
-    height: p2dWidth(75),
-    backgroundColor: '#FFFFFF',
-    borderRadius: p2dWidth(11),
-  },
-  mtRight: {
-    position: 'absolute',
-    top: p2dWidth(-55),
-    right: p2dWidth(24),
-    width: p2dWidth(16),
-    height: p2dWidth(75),
-    backgroundColor: '#FFFFFF',
-    borderRadius: p2dWidth(11),
-  },
-  mtCenter: {
-    position: 'absolute',
-    top: p2dWidth(-30),
-    left: '50%',
-    marginLeft: p2dWidth(-150),
-    width: p2dWidth(300),
-    height: p2dWidth(60),
-    backgroundColor: '#FF9E00',
-    borderRadius: p2dWidth(40),
-  },
-  mtStep: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    height: '100%',
-    paddingLeft: p2dWidth(42),
-    paddingRight: p2dWidth(42),
-  },
-  mtItem: {
-    display: 'flex',
-    width: '100%',
-    flexDirection: 'row',
-  },
-  mtCircle: {
-    width: p2dWidth(42),
-    height: p2dWidth(42),
-    borderColor: '#00BFCE',
-    borderWidth: 2,
-    borderRadius: p2dWidth(42),
-    borderStyle: 'solid',
-    marginRight: p2dWidth(10),
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mtStepText: {
-    fontSize: p2dWidth(28),
-    fontWeight: '500',
-    color: '#333333',
-    lineHeight: p2dWidth(42),
-    letterSpacing: 2,
-  },
-  mtStepText1: {
-    fontSize: p2dWidth(20),
-    fontWeight: '500',
-    color: '#333333',
-    lineHeight: p2dWidth(42),
-    letterSpacing: 2,
-  },
-  mtStepText2: {
-    color: '#00BFCE',
-  },
-  mtStepText3: {
-    fontSize: p2dWidth(20),
-    color: '#333333',
-    lineHeight: p2dWidth(42),
-    letterSpacing: 1,
-  },
-  mtStepText4: {
-    fontSize: p2dWidth(28),
-    fontWeight: '900',
-    color: '#D0021B',
-    lineHeight: p2dWidth(50),
-    letterSpacing: 1,
-  },
-});
 
 export default home;

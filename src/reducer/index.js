@@ -15,13 +15,6 @@ const initialState = {
   //订单数据
   orderInfo: {},
 
-  //取药码订单ZZ
-  // codeOrder: {
-  //   cartList: {},
-  //   orderInfo: {},
-  //   productNum: 0,
-  // },
-
   token: '',
   //场景标识，发送给后端判断用户是否登录。
   sceneStr: '',

@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {
   Text,
   View,
+  Button,
   Image,
   TextInput,
   TouchableOpacity,
@@ -36,41 +37,67 @@ class login extends Component {
       selectedOutline: 0, //1代表手机号输入框,2代表验证码输入框,0代表输入框没有获得焦点，标注获得焦点的输入框
       loginOutline: false,
       weixinCodeUrl: '',
+      ticket: '',
+      sceneStr: '',
+      orgId: '',
     };
   }
 
   async componentDidMount() {
     const orgId = store.getState().equipmentInfo.equipmentGroupInfo.orgId;
+    console.info('orgId-------', orgId);
     let res = await api.getQrCode(orgId);
     console.log('login', orgId, res.qrCodeInfo.sceneStr);
     drugChannel = JSON.parse(
       store.getState().equipmentInfo.equipmentTypeInfo.drugChannel,
     );
+    this.setState({
+      ticket: res.qrCodeInfo.ticket,
+      sceneStr: res.qrCodeInfo.sceneStr,
+      orgId: orgId,
+    });
     this.setState({weixinCodeUrl: Conf.weixinUrl + res.qrCodeInfo.ticket});
 
     const action = updateSceneStr(res.qrCodeInfo.sceneStr);
     store.dispatch(action);
-    let checkQrLogin;
-    let that = this;
-    this.checkTimer = setInterval(() => {
-      if (that.checkTimer) {
-        clearInterval(that.checkTimer);
-      }
-      checkQrLogin = api.checkQrLogin({
-        sceneStr: res.qrCodeInfo.sceneStr,
-        orgId,
-      });
-      if (checkQrLogin.status === true) {
-        clearInterval(that.checkTimer);
-        this.props.navigation.navigate('order');
-      }
-    }, 2000);
+  }
 
-    equipmentInfo = store.getState().equipmentInfo;
-    console.info(
-      'login-page--equipmentInfo',
-      equipmentInfo.equipmentProductInfo,
-    );
+  async checkLogin() {
+    this.checkTimer = setInterval(() => {
+      api
+        .checkQrLogin({
+          sceneStr: this.state.sceneStr,
+          orgId: this.state.orgId,
+        })
+        .then((res) => {
+          console.info('CheckLogin-----------------++++', res);
+          let statusCode = res.qrLoginInfo.errorCode;
+          switch (statusCode) {
+            case '10003':
+              Alert.alert('请重新扫码');
+              break;
+            case '10004':
+              Alert.alert('您还没有注册,注册后才能登录');
+              break;
+            case '10005':
+              Alert.alert('您还没有和医生绑定，绑定后才能登陆');
+              break;
+            case '10010':
+              {
+                let action = updateLogged({
+                  mobile: res.qrLoginInfo.customerInfo.phone,
+                  userId: res.qrLoginInfo.customerInfo.customerId,
+                });
+                store.dispatch(action);
+                clearInterval(this.checkTimer);
+                this.props.navigation.navigate('order');
+              }
+              break;
+            default:
+              break;
+          }
+        });
+    }, 5000);
   }
 
   switchLoginMode(val) {
@@ -109,7 +136,7 @@ class login extends Component {
         userId: res.userId,
       });
       store.dispatch(action);
-
+      clearInterval(this.checkTimer);
       this.props.navigation.navigate('order');
     }
   }
@@ -157,7 +184,7 @@ class login extends Component {
     }
   }
   render() {
-    const {verifyCode, mobile, loginOutline, loginMode, ticket} = this.state;
+    const {verifyCode, mobile, loginOutline, loginMode} = this.state;
     return (
       <View
         style={{
@@ -211,7 +238,9 @@ class login extends Component {
                 backgroundColor:
                   loginMode === 'code' ? 'rgba(0,191,206,0.7)' : '#fff',
               }}
-              onPress={() => this.switchLoginMode('code')}>
+              onPress={() => {
+                this.switchLoginMode('code'), this.checkLogin();
+              }}>
               <Text
                 style={{
                   textAlign: 'center',
@@ -347,8 +376,7 @@ class login extends Component {
                       style={{
                         fontSize: p2dWidth(20),
                         textAlign: 'center',
-                        // paddingVertical: 2,
-                        lineHeight: p2dHeight(70),
+                        lineHeight: p2dHeight(60),
                       }}>
                       {this.state.count === -1
                         ? '获取验证码'
@@ -437,7 +465,7 @@ class login extends Component {
                     style={{
                       textAlign: 'center',
                       fontSize: p2dWidth(36),
-                      lineHeight: p2dHeight(90),
+                      lineHeight: p2dHeight(93),
                     }}>
                     登录
                   </Text>

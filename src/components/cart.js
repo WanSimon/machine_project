@@ -28,6 +28,7 @@ class cart extends Component {
       }
     }
     this.setState({cartList, cartArr});
+    console.info('cartArr-------------', cartArr);
     this.props.setCartList(cartList);
   }
 
@@ -163,7 +164,11 @@ class cart extends Component {
                         width: p2dWidth(200),
                         height: p2dWidth(200),
                       }}
-                      source={{uri: $conf.resource_oss + item.homeThumb}}
+                      source={{
+                        uri: $conf.resource_fdfs + item.homeThumbUrl,
+                        // $conf.resource_fdfs +
+                        // item.orgProductInfo.productInfo.homeThumbUrl,
+                      }}
                     />
                     <Text
                       style={{

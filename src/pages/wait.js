@@ -436,6 +436,23 @@ class wait extends Component {
       obj = AddTextContent(phone, 0, 0, 0, ticketTemplateInfoList);
       ticketTemplateInfoList.push(obj);
 
+      try {
+        //间隔
+        arr = AddBlankLine(0, 1);
+        ticketTemplateInfoList = ticketTemplateInfoList.concat(arr);
+        //申请退款二维码
+        let imageBase64 = await this.urlToBase64();
+        obj = AddImageContent(imageBase64, 1);
+        ticketTemplateInfoList.push(obj);
+
+        let applyDesc = '扫码申请电子发票';
+        obj = AddTextContent(applyDesc, 1, 0, 0);
+        ticketTemplateInfoList.push(obj);
+      } catch (e) {
+        alert(e);
+        console.error(e);
+      }
+
       let remark = '谢谢惠顾，欢迎再次使用！';
       obj = AddTextContent(remark, 1, 0, 0, ticketTemplateInfoList);
       ticketTemplateInfoList.push(obj);
@@ -694,10 +711,8 @@ class wait extends Component {
           width: '100%',
         }}>
         <TopBar
-          // disableCount={true}
-          count={90000}
-          hideBack={true}
-          // hideBack={false}
+          disableCount={true}
+          hideBack={false}
           pageName="等待取药"
           navigation={this.props.navigation}
         />

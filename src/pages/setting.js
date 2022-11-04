@@ -1,4 +1,4 @@
-import React, {Component, useState} from 'react';
+import React, {Component} from 'react';
 import {
   View,
   Text,
@@ -266,79 +266,84 @@ class Setting extends Component {
     }
   }
 
-  async getEquipmentInfo() {
-    try {
-      let mac = await this.getMac();
-      let res = await api.getEquipmentInfo(null, mac);
-      if (res?.equipmentInfo) {
-        res.equipmentInfo;
-        let equipmentInfo = res.equipmentInfo;
-        //获取设备详情
-        const equipmentInfoDetailRes = await api.getEquipmentDetail(
-          equipmentInfo.equipmentId,
-          equipmentInfo.mac,
-        );
-        if (
-          equipmentInfoDetailRes &&
-          equipmentInfoDetailRes.equipmentDetailInfo
-        ) {
-          console.info(
-            'setting page, getEquipmentInfo,getEquipmentDetail success %o, %o',
-            // equipmentInfo,
-            equipmentInfoDetailRes,
-          );
-          NativeModules.RaioApi.debug(
-            {
-              msg: `setting page, getEquipmentInfo,getEquipmentDetail success, ${JSON.stringify(
-                equipmentInfo,
-              )}, ${JSON.stringify(equipmentInfoDetailRes)}`,
-              method: 'setting.getEquipmentInfo',
-            },
-            null,
-          );
-          const action = await upgradeEquipmentInfo(
-            equipmentInfoDetailRes.equipmentDetailInfo,
-          );
-          store.dispatch(action);
-        } else {
-          console.info(
-            'setting page, getEquipmentInfo,getEquipmentDetail something wrong, %o, %o',
-            equipmentInfoDetailRes,
-          );
-          NativeModules.RaioApi.debug(
-            {
-              msg: `setting page, getEquipmentInfo,getEquipmentDetail something wrong, ${JSON.stringify(
-                equipmentInfo,
-              )}, ${JSON.stringify(equipmentInfoDetailRes)}`,
-              method: 'setting.getEquipmentInfo',
-            },
-            null,
-          );
-        }
-        return equipmentInfo;
-      } else {
+  getMac() {
+    return new Promise((resolve, reject) => {
+      if (Conf.debug) {
         NativeModules.RaioApi.debug(
           {
-            msg: `setting page, getEquipmentInfo something wrong, ${JSON.stringify(
-              res,
-            )}`,
-            method: 'setting.getEquipmentInfo',
+            msg: `get mac success, debug mode, ${Conf.mac}`,
+            method: 'start.getMac',
           },
           null,
         );
+        console.info(`get mac success, debug mode, ${Conf.mac}`);
+        resolve(Conf.mac);
+      } else {
+        NativeModules.RaioApi.getMac((res) => {
+          if (res) {
+            res = res.replace(/:/g, '');
+            console.info(`get mac success, ${res}`);
+            NativeModules.RaioApi.debug(
+              {msg: `get mac success, ${res}`, method: 'start.getMac'},
+              null,
+            );
+            resolve(res);
+          } else {
+            NativeModules.RaioApi.debug(
+              {
+                msg: `get mac fail, ${JSON.stringify(res)}`,
+                method: 'start.getMac',
+              },
+              null,
+            );
+            console.info(`get mac fail, ${JSON.stringify(res)}`);
+            reject(res);
+          }
+        });
       }
-    } catch (e) {
-      console.info('setting page, getEquipmentInfo fail, %o', e);
+    });
+  }
+
+  async getEquipmentInfo() {
+    let mac = await this.getMac();
+    let res = await api.getEquipmentInfo(null, mac);
+    if (res?.equipmentInfo) {
+      res.equipmentInfo;
+      let equipmentInfo = res.equipmentInfo;
+      //获取设备详情
+      const equipmentInfoDetailRes = await api.getEquipmentDetail(
+        equipmentInfo.equipmentId,
+        equipmentInfo.mac,
+      );
+      if (
+        equipmentInfoDetailRes &&
+        equipmentInfoDetailRes.equipmentDetailInfo
+      ) {
+        console.info(
+          'setting page, getEquipmentInfo,getEquipmentDetail success %o, %o',
+          equipmentInfoDetailRes,
+        );
+        const action = await upgradeEquipmentInfo(
+          equipmentInfoDetailRes.equipmentDetailInfo,
+        );
+        store.dispatch(action);
+        Alert.alert('更新数据信息成功');
+      } else {
+        console.info(
+          'setting page, getEquipmentInfo,getEquipmentDetail something wrong, %o, %o',
+          equipmentInfoDetailRes,
+        );
+      }
+    } else {
       NativeModules.RaioApi.debug(
         {
-          msg: `setting page, getEquipmentInfo fail, ${JSON.stringify(
-            e.message,
+          msg: `setting page, getEquipmentInfo something wrong, ${JSON.stringify(
+            res,
           )}`,
           method: 'setting.getEquipmentInfo',
         },
         null,
       );
-      return false;
     }
   }
 
@@ -467,7 +472,7 @@ class Setting extends Component {
                   <Button
                     color="#00BFCE"
                     style={{flexShrink: 0}}
-                    title="退出程序"
+                    title="更新药品数据"
                     onPress={this.getEquipmentInfo.bind(this)}
                   />
                 </View>

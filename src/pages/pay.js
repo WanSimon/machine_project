@@ -20,7 +20,6 @@ class pay extends Component {
       qrcode: '',
       aliPayUrl: '',
       wechatPayUrl: '',
-      payMode: 'ali',
       totalPrice: 0,
       //订单内部编码
       tradeNo: '',
@@ -29,6 +28,7 @@ class pay extends Component {
       textInputValue: '',
       patientId: '',
       name: '',
+      payMode: '',
       formattedPatientList: [],
 
       showPayCode: false,
@@ -57,9 +57,9 @@ class pay extends Component {
       tradeNo: orderInfo.innerOrderNo,
       totalPrice: cart.totalPrice,
       orderId: orderInfo.orderId,
+      payMode: 'ali',
     }); //准备删除
-
-    let res = await this.pay(orderInfo.innerOrderNo);
+    let res = await this.pay(orderInfo.innerOrderNo, 'ali');
     let payUrl = res.payReqParam.payUrl;
     this.setState({qrcode: payUrl, aliPayUrl: payUrl});
 
@@ -73,15 +73,15 @@ class pay extends Component {
 
     const {tradeNo, aliPayUrl, wechatPayUrl, orderId} = this.state;
     this.switchEnd = false;
-
+    this.setState({payMode: payMode});
     if (payMode === 'ali') {
       if (aliPayUrl === '') {
-        let res = await this.pay(tradeNo);
+        let res = await this.pay(tradeNo, payMode);
         let payUrl = res.payReqParam.payUrl;
         console.info('ali', payUrl);
-        this.setState({qrcode: payUrl, aliPayUrl: payUrl, payMode: 'ali'});
+        this.setState({qrcode: payUrl, aliPayUrl: payUrl});
       } else {
-        this.setState({qrcode: this.state.aliPayUrl, payMode});
+        this.setState({qrcode: this.state.aliPayUrl});
       }
       await api.updateOrderPayType({
         payType: 1,
@@ -91,16 +91,15 @@ class pay extends Component {
 
     if (payMode === 'wechat') {
       if (wechatPayUrl === '') {
-        let res = await this.pay(tradeNo);
+        let res = await this.pay(tradeNo, payMode);
         let payUrl = res.payReqParam.payUrl;
         console.info('wechat', payUrl);
         this.setState({
           qrcode: payUrl,
           wechatPayUrl: payUrl,
-          payMode: 'wechat',
         });
       } else {
-        this.setState({qrcode: this.state.wechatPayUrl, payMode});
+        this.setState({qrcode: this.state.wechatPayUrl});
       }
 
       await api.updateOrderPayType({
@@ -112,7 +111,7 @@ class pay extends Component {
     this.switchEnd = true;
   }
 
-  async pay(tradeNo) {
+  async pay(tradeNo, payMode) {
     let equipmentInfo = store.getState().equipmentInfo;
     let cart = store.getState().cart;
     let payInfo = {};
@@ -120,21 +119,12 @@ class pay extends Component {
     payInfo.tradeNo = tradeNo;
     payInfo.totalFee = cart.totalPrice;
     payInfo.tradeType =
-      this.state.payMode === 'ali' ? TradeType.ALI_NATIVE : TradeType.WX_NATIVE;
+      payMode === 'ali' ? TradeType.ALI_NATIVE : TradeType.WX_NATIVE;
     payInfo.comment = '24小时自助药机-药品';
 
     let res = null;
     try {
       res = await api.orderPay(payInfo);
-
-      console.log(
-        '111111',
-        res.payReqParam.payUrl,
-        '2222222',
-        payInfo.tradeType,
-        '3333333',
-        this.state.payMode,
-      );
     } catch (e) {
       console.error(e);
     }
@@ -304,7 +294,7 @@ class pay extends Component {
               }}
               imageStyle={{resizeMode: 'contain'}}
               source={
-                payMode === 'ali'
+                this.state.payMode === 'ali'
                   ? require('../assets/aliPay.png')
                   : require('../assets/ali.png')
               }
@@ -328,7 +318,7 @@ class pay extends Component {
               }}
               imageStyle={{resizeMode: 'contain'}}
               source={
-                payMode === 'wechat'
+                this.state.payMode === 'wechat'
                   ? require('../assets/wechatPay.png')
                   : require('../assets/wechat.png')
               }

@@ -3,14 +3,12 @@ import {
   BackHandler,
   Modal,
   StyleSheet,
-  Alert,
   TextInput,
   View,
   Text,
   TouchableOpacity,
   Animated,
   Easing,
-  Image,
 } from 'react-native';
 import {p2dWidth} from '../js/utils';
 

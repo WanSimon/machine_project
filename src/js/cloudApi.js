@@ -195,7 +195,7 @@ class CloudApi {
     let res = null;
 
     try {
-      res = await this._request('POST', router.getQrCode, {...orgId});
+      res = await this._request('POST', router.getQrCode, {orgId});
     } catch (e) {
       console.info('Get Qrcode error, error  info is ', e);
     }
@@ -436,15 +436,8 @@ class CloudApi {
     } catch (e) {
       console.log('request checkQrLogin crash!! err = ', e);
     }
-    console.log('checkQrLogin finished');
-    //接口返回的数据类型是
-    // {
-    //     "msg": "操作成功",
-    //     "code": 1000,
-    //     "data":
-    // }
-    // code:100 在request请求返回后被过滤了
-    return {code: 1000};
+    console.log('checkQrLogin finished', res);
+    return res;
   }
 
   async pwdLogin(obj) {
