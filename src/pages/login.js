@@ -158,10 +158,11 @@ class login extends Component {
       this.setState({
         count: 60,
       });
-      Alert.alert('验证码已发送,请注意查收');
-    } else {
-      Alert.alert('验证码发送失败,请重新获取验证码');
+      // Alert.alert('验证码已发送,请注意查收');
     }
+    // else {
+    // Alert.alert('验证码发送失败,请重新获取验证码');
+    // }
     this.timer = setInterval(() => {
       if (this.state.count > 0) {
         this.setState({
@@ -231,7 +232,7 @@ class login extends Component {
             <TouchableOpacity
               style={{
                 borderColor: 'rgba(206,208,209,0.7)',
-                borderWidth: 1,
+                borderWidth: p2dWidth(2),
                 borderStyle: 'solid',
                 width: p2dWidth(400),
                 height: p2dHeight(100),
@@ -246,6 +247,8 @@ class login extends Component {
                   textAlign: 'center',
                   fontSize: p2dWidth(36),
                   lineHeight: p2dHeight(100),
+                  color:
+                    loginMode === 'code' ? '#FFFFFF' : 'rgba(0,191,206,0.7)',
                 }}>
                 微信扫码登录
               </Text>
@@ -253,12 +256,11 @@ class login extends Component {
             <TouchableOpacity
               style={{
                 borderColor: 'rgba(206,208,209,0.7)',
-                borderWidth: 1,
+                borderWidth: p2dWidth(2),
                 borderStyle: 'solid',
                 height: p2dHeight(100),
                 width: p2dWidth(400),
                 borderLeftWidth: 0,
-
                 backgroundColor:
                   loginMode === 'num' ? 'rgba(0,191,206,0.7)' : '#fff',
               }}
@@ -267,7 +269,9 @@ class login extends Component {
                 style={{
                   textAlign: 'center',
                   fontSize: p2dWidth(36),
-                  lineHeight: p2dHeight(100),
+                  lineHeight: p2dHeight(101),
+                  color:
+                    loginMode === 'code' ? 'rgba(0,191,206,0.7)' : '#FFFFFF',
                 }}>
                 验证码登录
               </Text>
@@ -327,7 +331,7 @@ class login extends Component {
                             ? 'rgba(0,191,206,0.7)'
                             : '#8c8c8c',
                         // borderWidth: 2,
-                        borderBottomWidth: 2,
+                        borderBottomWidth: p2dWidth(2),
                         // borderRadius: 2,
                         letterSpacing: p2dWidth(8),
                         paddingLeft: p2dWidth(15),
@@ -377,6 +381,7 @@ class login extends Component {
                         fontSize: p2dWidth(20),
                         textAlign: 'center',
                         lineHeight: p2dHeight(60),
+                        color: this.state.count < 0 ? '#FFFFFF' : '#000000',
                       }}>
                       {this.state.count === -1
                         ? '获取验证码'
@@ -416,7 +421,7 @@ class login extends Component {
                         this.state.selectedOutline === 2
                           ? 'rgba(0,191,206,0.7)'
                           : '#8c8c8c',
-                      borderBottomWidth: 2,
+                      borderBottomWidth: p2dWidth(2),
                       borderStyle: 'solid',
                       // borderRadius: 2,
                       width: p2dWidth(400),
@@ -458,14 +463,13 @@ class login extends Component {
                   top: p2dHeight(680),
                   marginLeft: p2dWidth(310),
                 }}>
-                <TouchableOpacity
-                  style={{}}
-                  onPress={() => this.submitLoginForm()}>
+                <TouchableOpacity onPress={() => this.submitLoginForm()}>
                   <Text
                     style={{
                       textAlign: 'center',
                       fontSize: p2dWidth(36),
-                      lineHeight: p2dHeight(93),
+                      lineHeight: p2dHeight(97),
+                      color: '#FFFFFF',
                     }}>
                     登录
                   </Text>

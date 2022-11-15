@@ -91,14 +91,10 @@ class home extends Component {
           style={{
             position: 'absolute',
             left: p2dWidth(60),
-            top: p2dHeight(155),
-            // borderColor: 'black',
-            // borderWidth: 2,
+            top: p2dHeight(177),
           }}>
           <Text
             style={{
-              // borderColor: 'green',
-              // borderWidth: 2,
               fontSize: p2dWidth(45),
               color: 'white',
               fontWeight: 'bold',
@@ -108,21 +104,18 @@ class home extends Component {
           <Image
             style={{
               position: 'absolute',
-              top: p2dHeight(5),
+              top: -p2dHeight(3),
               left: p2dWidth(230),
-              width: p2dWidth(300),
+              width: p2dWidth(320),
               height: p2dHeight(65),
-
-              // borderColor: 'black',
-              // borderWidth: 2,
             }}
             source={require('../assets/fh.png')}></Image>
         </View>
         <Text
           style={{
-            marginLeft: '38%',
             letterSpacing: p2dWidth(10),
             marginTop: p2dHeight(100),
+            textAlign: 'center',
             color: 'rgba(66,66,66,0.7)',
             fontSize: p2dWidth(50),
           }}>
@@ -130,11 +123,11 @@ class home extends Component {
         </Text>
         <Text
           style={{
-            marginLeft: '29%',
             marginTop: p2dHeight(20),
             letterSpacing: p2dWidth(10),
             fontSize: p2dWidth(100),
             fontWeight: '700',
+            textAlign: 'center',
           }}>
           自助购药
         </Text>

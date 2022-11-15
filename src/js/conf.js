@@ -14,7 +14,7 @@ const Conf = {
   resource_oss: 'https://oys-bucket-fh.oss-cn-shanghai.aliyuncs.com/',
   // resource_fdfs: 'http://121.36.246.250:10060/',
   resource_fdfs: 'http://192.168.101.71:1010/view/',
-  debug: true,
+  debug: false,
   sign: {
     appId: '1', //equipment
     secretKey: 'xy123456',

@@ -397,7 +397,9 @@ class Setting extends Component {
                           fontSize: p2dWidth(32),
                           width: p2dWidth(200),
                         }}
-                        keyboardType="numeric" //弹出键盘类型
+                        // keyboardType="numeric" //弹出键盘类型
+
+                        keyboardType="number-pad"
                         value={this.state.inputY}
                         onChangeText={(val) =>
                           this.setState({inputY: val})
@@ -418,7 +420,8 @@ class Setting extends Component {
                           fontSize: p2dWidth(32),
                           width: p2dWidth(200),
                         }}
-                        keyboardType="numeric" //弹出键盘类型
+                        // keyboardType="numeric" //弹出键盘类型
+                        keyboardType="number-pad"
                         value={this.state.inputX}
                         onChangeText={(val) =>
                           this.setState({inputX: val})

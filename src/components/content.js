@@ -143,11 +143,13 @@ class Content extends Component {
                     position: 'absolute',
                     left: p2dWidth(170),
                     top: p2dHeight(20),
-                    height: p2dHeight(33),
-                    lineHeight: p2dHeight(33),
+                    height: p2dHeight(35),
+                    lineHeight: p2dHeight(37),
+                    // borderWidth: 1
+                    // borderColor: 'black',
                     color: '#333333',
                     fontWeight: '500',
-                    fontSize: p2dWidth(24),
+                    fontSize: p2dWidth(28),
                   }}>
                   {item.orgProductInfo.productInfo.name}
                 </Text>
@@ -159,7 +161,7 @@ class Content extends Component {
                     lineHeight: p2dHeight(33),
                     color: '#333333',
                     fontWeight: '500',
-                    fontSize: p2dWidth(24),
+                    fontSize: p2dWidth(27),
                   }}>
                   {item.orgProductInfo.productInfo.orgProductId}
                 </Text>
@@ -167,12 +169,14 @@ class Content extends Component {
                   style={{
                     position: 'absolute',
                     left: p2dWidth(170),
-                    top: p2dHeight(63),
-                    height: p2dHeight(25),
-                    lineHeight: p2dWidth(25),
+                    top: p2dHeight(70),
+                    height: p2dHeight(39),
+                    lineHeight: p2dWidth(37),
                     color: '#999999',
                     fontWeight: '500',
-                    fontSize: p2dWidth(18),
+                    fontSize: p2dWidth(28),
+                    // borderWidth: 1,
+                    // borderColor: 'green',
                   }}>
                   {item.orgProductInfo.productInfo.specification}
                 </Text>
@@ -185,7 +189,7 @@ class Content extends Component {
                     lineHeight: p2dHeight(40),
                     color: '#FF5C2A',
                     fontWeight: '500',
-                    fontSize: p2dWidth(28),
+                    fontSize: p2dWidth(30),
                   }}>
                   ¥{parseCent(item.orgProductInfo.price)}
                 </Text>
@@ -193,20 +197,22 @@ class Content extends Component {
                   onPress={() => this.updateCart(1, item)}
                   style={{
                     position: 'absolute',
-                    right: p2dWidth(10),
-                    top: p2dHeight(185),
-                    width: p2dWidth(30),
-                    height: p2dWidth(30),
+                    right: p2dWidth(0),
+                    top: p2dHeight(175),
+                    width: p2dWidth(40),
+                    height: p2dWidth(40),
+                    // borderWidth: 1,
+                    // borderColor: 'green',
                   }}>
                   <Image
                     style={{width: '100%', height: '100%'}}
-                    source={require('../assets/plus.png')}
+                    source={require('../assets/bigPlus.png')}
                   />
                 </TouchableOpacity>
                 <Text
                   style={{
                     position: 'absolute',
-                    right: p2dWidth(40),
+                    right: p2dWidth(38),
                     top: p2dHeight(185),
                     width: p2dWidth(84),
                     height: p2dHeight(30),
@@ -214,7 +220,7 @@ class Content extends Component {
                     textAlign: 'center',
                     color: '#333333',
                     fontWeight: '500',
-                    fontSize: p2dWidth(28),
+                    fontSize: p2dWidth(30),
                   }}>
                   {this.state.cartList[item.orgProductInfo.orgProductId] &&
                   this.state.cartList[item.orgProductInfo.orgProductId].num > 0
@@ -227,26 +233,44 @@ class Content extends Component {
                   <TouchableOpacity
                     style={{
                       position: 'absolute',
-                      right: p2dWidth(124),
-                      top: p2dHeight(185),
-                      width: p2dWidth(30),
-                      height: p2dWidth(30),
+                      right: p2dWidth(114),
+                      top: p2dHeight(175),
+                      width: p2dWidth(40),
+                      height: p2dWidth(40),
                     }}
                     onPress={() => this.updateCart(-1, item)}>
                     <Image
                       style={{width: '100%', height: '100%'}}
-                      source={require('../assets/reduce.png')}
+                      source={require('../assets/bigReduce.png')}
                     />
                   </TouchableOpacity>
                 ) : null}
                 {item.realStock - item.lockStock < 1 ? (
-                  <ImageBackground
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                    }}
-                    source={require('../assets/sold.png')}
-                  />
+                  <View style={{}}>
+                    <View
+                      style={{
+                        backgroundColor: 'rgba(97,97,97,0.7)',
+                        width: p2dWidth(431),
+                        height: p2dHeight(229),
+                        borderWidth: p2dWidth(2),
+                        borderColor: 'yellow',
+                      }}></View>
+                    <ImageBackground
+                      style={{
+                        // width: '100%',
+                        // height: '100%',
+                        width: p2dWidth(126),
+                        height: p2dWidth(108),
+                        // backgroundColor: 'transparent',
+                        // color: 'yellow',
+                        // opacity: 1,
+                        position: 'absolute',
+                        left: p2dWidth(150),
+                        top: p2dHeight(60),
+                      }}
+                      source={require('../assets/sold.png')}
+                    />
+                  </View>
                 ) : null}
               </View>
             ))}

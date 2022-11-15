@@ -250,9 +250,12 @@ class order extends Component {
             marginTop: p2dHeight(30),
             height: p2dHeight(400),
             justifyContent: 'space-around',
+            position: 'relative',
           }}>
           <View>
-            <Text style={{fontSize: p2dWidth(50)}}>| 就诊信息</Text>
+            <Text style={{fontSize: p2dWidth(50), fontWeight: 'bold'}}>
+              | 就诊信息
+            </Text>
           </View>
           <View
             style={{
@@ -263,10 +266,10 @@ class order extends Component {
               marginRight: p2dWidth(30),
             }}>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>当前登录账号</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>当前登录账号</Text>
             </View>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>{mobile}</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>{mobile}</Text>
             </View>
           </View>
           <View
@@ -278,8 +281,15 @@ class order extends Component {
               marginLeft: p2dWidth(30),
               marginRight: p2dWidth(30),
             }}>
-            <View>
-              <Text style={{fontSize: p2dWidth(28)}}>选择就诊人</Text>
+            <View
+            // style={{
+            //   position: 'absolute',
+            //   top: p2dHeight(200),
+            //   borderWidth: 3,
+            //   borderColor: 'red', ///
+            // }}
+            >
+              <Text style={{fontSize: p2dWidth(33)}}>选择就诊人</Text>
             </View>
             <View
               style={{
@@ -294,33 +304,47 @@ class order extends Component {
                 style={{
                   height: p2dHeight(80),
                   textAlign: 'center',
-                  borderColor: 'green',
-                  borderWidth: 1,
-                  borderStyle: 'solid',
+                  // borderColor: 'green',
+
+                  // borderStyle: 'solid',
                 }}
                 selectStyle={{
                   height: p2dHeight(80),
                   // paddingTop: p2dHeight(7),
                   textAlign: 'center',
-                  borderColor: 'pink',
-                  borderWidth: 1,
-                  borderStyle: 'solid',
-                  color: 'black',
+
+                  borderWidth: p2dWidth(2),
+                  borderColor: 'rgba(0,191,206,0.7)',
+                  borderRadius: p2dWidth(65),
+                  // borderColor: 'purple',
+                  // borderWidth: 2,
+                  // borderStyle: 'solid',
                   // fontColor: 'purple',
                 }}
                 selectedItemTextStyle={{
-                  fontSize: p2dWidth(30),
+                  fontSize: p2dWidth(40),
+                  fontColor: 'white',
+                }}
+                optionContainerStyle={{
+                  // borderWidth: 2,
+                  // backgroundColor: 'green',
+                  // borderColor: 'red',
+                  // height: p2dHeight(130),
+                  // lineHeight: p2dHeight(130),
+                  width: p2dWidth(500),
+                  marginLeft: '25%',
                 }}
                 initValueTextStyle={{
                   //已选中就诊人的样式
                   color: 'rgba(0,191,206,0.7)',
-                  fontSize: p2dWidth(28),
-                  lineHeight: p2dHeight(80),
+                  fontSize: p2dWidth(30),
+                  lineHeight: p2dHeight(63),
                 }}
                 selectTextStyle={{
                   fontSize: p2dWidth(30),
                 }}
                 cancelText={'确定'}
+                cancelContainerStyle={{width: p2dWidth(500), marginLeft: '25%'}}
                 cancelTextStyle={{fontSize: p2dWidth(30)}}
                 optionTextStyle={{fontSize: p2dWidth(30)}}
                 onChange={(option) => {
@@ -340,10 +364,10 @@ class order extends Component {
               marginTop: p2dHeight(-30),
             }}>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>关联医生</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>关联医生</Text>
             </View>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>{doctorName}</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>{doctorName}</Text>
             </View>
           </View>
         </View>
@@ -352,7 +376,9 @@ class order extends Component {
             marginLeft: p2dWidth(30),
             marginRight: p2dWidth(30),
           }}>
-          <Text style={{fontSize: p2dWidth(50)}}>| 已选药品</Text>
+          <Text style={{fontSize: p2dWidth(50), fontWeight: 'bold'}}>
+            | 已选药品
+          </Text>
           {/* 当药品超过三个的时候显示向下滑动查看全部药品 */}
         </View>
         <View
@@ -370,12 +396,15 @@ class order extends Component {
             style={{
               marginTop: p2dHeight(30),
               borderRadius: p2dWidth(20),
-              borderColor: '#d9d9d9',
+              // borderColor: '#d9d9d9',
+
+              borderColor: 'yellow',
               borderWidth: 2,
               display: 'flex',
               height: '100%',
               flexDirection: 'column',
-              backgroundColor: '#fafafa',
+              // backgroundColor: '#fafafa',
+              backgroundColor: 'green',
               marginTop: p2dHeight(-1),
             }}>
             {drugArr.map((item) => (
@@ -405,19 +434,19 @@ class order extends Component {
                     left: p2dWidth(400),
                     top: p2dHeight(40),
                   }}>
-                  <Text style={{fontSize: p2dWidth(28)}}>{item.name}</Text>
+                  <Text style={{fontSize: p2dWidth(33)}}>{item.name}</Text>
                   <Text
                     style={{
-                      fontSize: p2dWidth(20),
+                      fontSize: p2dWidth(28),
                       position: 'absolute',
-                      top: p2dHeight(50),
+                      top: p2dHeight(53),
                       marginLeft: p2dHeight(10),
                     }}>
                     {item.specification}
                   </Text>
                   <Text
                     style={{
-                      fontSize: p2dWidth(30),
+                      fontSize: p2dWidth(33),
                       color: 'red',
                       position: 'absolute',
                       top: p2dHeight(100),
@@ -431,7 +460,7 @@ class order extends Component {
                     top: p2dHeight(70),
                     left: p2dWidth(800),
                   }}>
-                  <Text style={{fontSize: p2dWidth(32)}}>x{item.num}</Text>
+                  <Text style={{fontSize: p2dWidth(35)}}>x{item.num}</Text>
                 </View>
                 <View
                   style={{
@@ -450,7 +479,9 @@ class order extends Component {
             marginLeft: p2dWidth(30),
             marginRight: p2dWidth(30),
           }}>
-          <Text style={{fontSize: p2dWidth(50)}}>| 价格明细</Text>
+          <Text style={{fontSize: p2dWidth(50), fontWeight: 'bold'}}>
+            | 价格明细
+          </Text>
           <View
             style={{
               display: 'flex',
@@ -460,10 +491,10 @@ class order extends Component {
               justifyContent: 'space-between',
             }}>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>药品总价</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>药品总价</Text>
             </View>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>
+              <Text style={{fontSize: p2dWidth(33)}}>
                 ￥{parseCent(totalPrice)}
               </Text>
             </View>
@@ -478,10 +509,10 @@ class order extends Component {
               marginRight: p2dWidth(30),
             }}>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>优惠</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>优惠</Text>
             </View>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>￥0</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>￥0</Text>
             </View>
           </View>
           <View
@@ -493,10 +524,10 @@ class order extends Component {
               marginRight: p2dWidth(30),
             }}>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>实际价格</Text>
+              <Text style={{fontSize: p2dWidth(33)}}>实际价格</Text>
             </View>
             <View>
-              <Text style={{fontSize: p2dWidth(28)}}>
+              <Text style={{fontSize: p2dWidth(33)}}>
                 ￥{parseCent(totalPrice)}
               </Text>
             </View>
@@ -512,13 +543,13 @@ class order extends Component {
             marginBottom: p2dHeight(40),
           }}>
           <View style={{paddingTop: p2dHeight(20)}}>
-            <Text style={{marginRight: p2dWidth(50), fontSize: p2dWidth(28)}}>
+            <Text style={{marginRight: p2dWidth(50), fontSize: p2dWidth(33)}}>
               共计{totalNumber}件 金额￥{parseCent(totalPrice)}
             </Text>
           </View>
           <TouchableOpacity
             style={{
-              borderRadius: p2dWidth(20),
+              borderRadius: p2dWidth(65),
               backgroundColor: 'rgba(0,191,206,0.7)',
               width: p2dWidth(300),
               height: p2dHeight(90),
@@ -531,7 +562,7 @@ class order extends Component {
                 textAlign: 'center',
                 paddingTop: p2dHeight(20),
                 fontSize: p2dWidth(36),
-                // fontColor: 'white',
+                color: '#FFFFFF',
               }}>
               提交订单
             </Text>

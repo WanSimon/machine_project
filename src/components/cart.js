@@ -223,7 +223,7 @@ class cart extends Component {
                           width: '100%',
                           height: '100%',
                         }}
-                        source={require('../assets/plus.png')}
+                        source={require('../assets/bigPlus.png')}
                       />
                     </TouchableOpacity>
                     <Text
@@ -255,7 +255,7 @@ class cart extends Component {
                           width: '100%',
                           height: '100%',
                         }}
-                        source={require('../assets/reduce.png')}
+                        source={require('../assets/bigReduce.png')}
                       />
                     </TouchableOpacity>
                   </View>

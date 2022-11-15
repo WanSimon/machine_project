@@ -209,7 +209,7 @@ class list extends Component {
         }}>
         <TopBar
           count={this.state.count}
-          pageName="药品列表"
+          pageName="商品列表"
           hideBack={true}
           navigation={this.props.navigation}
         />

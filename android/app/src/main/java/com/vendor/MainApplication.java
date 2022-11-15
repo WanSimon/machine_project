@@ -7,10 +7,11 @@ import android.content.IntentFilter;
 import android.widget.Toast;
 
 //import com.facebook.react.BuildConfig;
+import com.facebook.react.BuildConfig;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.songlcy.rnupgrade.UpgradePackage;
-import com.reactnativecommunity.picker.RNCPickerPackage;
+//import com.reactnativecommunity.picker.RNCPickerPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
