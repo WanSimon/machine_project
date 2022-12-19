@@ -14,13 +14,14 @@ const Conf = {
   resource_oss: 'https://oys-bucket-fh.oss-cn-shanghai.aliyuncs.com/',
   // resource_fdfs: 'http://121.36.246.250:10060/',
   resource_fdfs: 'http://192.168.101.71:1010/view/',
-  debug: false,
+  debug: true,
+  payUrl: 'http://www.baidu.com',
   sign: {
     appId: '1', //equipment
     secretKey: 'xy123456',
   },
   //退款申请地址
-  applyRefundUrl: 'http://c.cinyou.com/pages/user/List?f=1',
+  applyRefundUrl: 'https://tonsil.cinyou.cn/client',
 };
 
 export default Conf;

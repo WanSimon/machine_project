@@ -21,6 +21,7 @@ class Search extends Component {
           borderColor: $conf.theme,
           borderRadius: p2dWidth(40),
           position: 'relative',
+          backgroundColor: '#FFFFFF',
         }}>
         <Image
           style={{
