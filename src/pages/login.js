@@ -14,6 +14,10 @@ import {updateLogged, updateSceneStr} from '../action';
 import {store} from '../store/store';
 import TopBar from '../components/topbar';
 import Conf from '../js/conf';
+
+import AwesomeAlert from 'react-native-awesome-alerts';
+import CommonAlert from '../components/commonAlert';
+import SmallAlert from '../components/smallAlert';
 class login extends Component {
   constructor(props) {
     super(props);
@@ -40,6 +44,13 @@ class login extends Component {
       ticket: '',
       sceneStr: '',
       orgId: '',
+      responseCode: '',
+      showRestartScanAlert: false, //控制弹出框
+      showRegisterAlert: false,
+      showUnbindDoctorAlert: false,
+      showLoginFailAlert: false,
+      showIncorrectPhoneAlert: false,
+      showFullLoginDataAlert: false,
     };
   }
 
@@ -48,9 +59,11 @@ class login extends Component {
     console.info('orgId-------', orgId);
     let res = await api.getQrCode(orgId);
     console.log('login', orgId, res.qrCodeInfo.sceneStr);
-    drugChannel = JSON.parse(
-      store.getState().equipmentInfo.equipmentTypeInfo.drugChannel,
+    console.info(
+      '--------------------1111111111111--------------------',
+      store.getState().equipmentInfo,
     );
+
     this.setState({
       ticket: res.qrCodeInfo.ticket,
       sceneStr: res.qrCodeInfo.sceneStr,
@@ -63,6 +76,7 @@ class login extends Component {
   }
 
   async checkLogin() {
+    let code = '';
     this.checkTimer = setInterval(() => {
       api
         .checkQrLogin({
@@ -70,17 +84,27 @@ class login extends Component {
           orgId: this.state.orgId,
         })
         .then((res) => {
-          console.info('CheckLogin-----------------++++', res);
           let statusCode = res.qrLoginInfo.errorCode;
           switch (statusCode) {
             case '10003':
-              Alert.alert('请重新扫码');
+              {
+                this.AlertRestart;
+                this.setState({responseCode: '10003'});
+              }
               break;
             case '10004':
-              Alert.alert('您还没有注册,注册后才能登录');
+              {
+                this.setState({
+                  responseCode: '10004',
+                });
+              }
               break;
             case '10005':
-              Alert.alert('您还没有和医生绑定，绑定后才能登陆');
+              {
+                this.setState({
+                  responseCode: '10005',
+                });
+              }
               break;
             case '10010':
               {
@@ -89,7 +113,9 @@ class login extends Component {
                   userId: res.qrLoginInfo.customerInfo.customerId,
                 });
                 store.dispatch(action);
+
                 clearInterval(this.checkTimer);
+                code = '10010';
                 this.props.navigation.navigate('order');
               }
               break;
@@ -100,6 +126,45 @@ class login extends Component {
     }, 5000);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextState !== this.state;
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    if (this.state.responseCode !== prevState.responseCode) {
+      let resCode = this.state.responseCode.toString();
+      switch (resCode) {
+        case '10003':
+          {
+            this.setState({
+              showRestartScanAlert: true,
+            });
+          }
+          break;
+        case '10004':
+          {
+            this.setState({
+              showRegisterAlert: true,
+            });
+          }
+          break;
+        case '10005':
+          {
+            this.setState({
+              showUnbindDoctorAlert: true,
+            });
+          }
+          break;
+        case '10010':
+          {
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   switchLoginMode(val) {
     this.setState({loginMode: val});
   }
@@ -107,14 +172,20 @@ class login extends Component {
   async submitLoginForm() {
     const {verifyCode, mobile} = this.state;
     if (!(verifyCode && mobile)) {
-      Alert.alert('请输入完整的登录信息');
+      // Alert.alert('请输入完整的登录信息');
+      this.setState({
+        showFullLoginDataAlert: true,
+      });
       return;
     }
     let phoneReg = /^((\+|00)86)?1\d{10}$/; //正则表达式校验
 
     let regTest = phoneReg.test(mobile);
     if (!regTest) {
-      Alert.alert('请输入正确格式的手机号');
+      // Alert.alert('请输入正确格式的手机号');
+      this.setState({
+        showIncorrectPhoneAlert: true,
+      });
       return;
     }
 
@@ -145,7 +216,12 @@ class login extends Component {
     //获取验证码
     const {mobile, count} = this.state;
     if (!mobile) {
-      Alert.alert('请输入完整的手机号');
+      // Alert.alert('请输入完整的手机号');
+      // this.AlertPro.open();
+
+      this.setState({
+        showIncorrectPhoneAlert: true,
+      });
       return;
     }
     if (count > 0) {
@@ -184,8 +260,89 @@ class login extends Component {
       clearInterval(this.checkTimer);
     }
   }
+
+  showRegisterAlert() {
+    this.setState({
+      showRegisterAlert: true,
+    });
+  }
+  hideRegisterAlert() {
+    this.setState({
+      showRegisterAlert: false,
+    });
+  }
+
+  showUnbindDoctorAlert() {
+    this.setState({
+      showUnbindDoctorAlert: true,
+    });
+  }
+
+  hideUnbindDoctorAlert() {
+    this.setState({
+      showUnbindDoctorAlert: false,
+    });
+  }
+
+  showRestartScanAlert() {
+    this.setState({
+      showRestartScanAlert: true,
+    });
+  }
+  hideRestartScanAlert() {
+    this.setState({
+      showRestartScanAlert: false,
+    });
+  }
+
+  showLoginFailAlert() {
+    this.setState({
+      showLoginFailAlert: true,
+    });
+  }
+
+  hideLoginFailAlert() {
+    this.setState({
+      showLoginFailAlert: false,
+    });
+  }
+
+  showIncorrectPhoneAlert() {
+    this.setState({
+      showIncorrectPhoneAlert: true,
+    });
+  }
+
+  hideIncorrectPhoneAlert() {
+    this.setState({
+      showIncorrectPhoneAlert: false,
+    });
+  }
+
+  showFullLoginDataAlert() {
+    this.setState({
+      showFullLoginDataAlert: true,
+    });
+  }
+
+  hideFullLoginDataAlert() {
+    this.setState({
+      showFullLoginDataAlert: false,
+    });
+  }
   render() {
-    const {verifyCode, mobile, loginOutline, loginMode} = this.state;
+    const {
+      verifyCode,
+      mobile,
+      loginOutline,
+      loginMode,
+      showRegisterAlert,
+      showUnbindDoctorAlert,
+      showRestartScanAlert,
+      showLoginFailAlert,
+      showIncorrectPhoneAlert,
+      showFullLoginDataAlert,
+    } = this.state;
     return (
       <View
         style={{
@@ -195,6 +352,358 @@ class login extends Component {
           display: 'flex',
           flexDirection: 'column',
         }}>
+        <CommonAlert
+          showAlert={showFullLoginDataAlert}
+          title="请输入完整的登录信息"
+          confirmText="确定"></CommonAlert>
+        <CommonAlert
+          showAlert={showIncorrectPhoneAlert}
+          title="请输入完整的手机号"
+          confirmText="确定"></CommonAlert>
+        <CommonAlert
+          showAlert={showLoginFailAlert}
+          title="登录失败,检查登录信息无误后再提交"
+          confirmText="确定"></CommonAlert>
+        <CommonAlert
+          showAlert={showUnbindDoctorAlert}
+          title="该账号还未绑定医生,绑定后再扫码"
+          confirmText="确定"></CommonAlert>
+        {/* <SmallAlert
+          showAlert={showRegisterAlert}
+          title="你还未注册,注册后再扫码1"
+          setAlert={(val) => this.setState({showRegisterAlert: val})}
+          confirmText="确定"></SmallAlert> */}
+        <CommonAlert
+          showAlert={showRestartScanAlert}
+          title="请重新扫码"
+          confirmText="确定"></CommonAlert>
+        <AwesomeAlert
+          show={showRegisterAlert}
+          showProgress={false}
+          title="您还未注册,注册后再扫码"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(35),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(30),
+            color: 'white',
+            lineHeight: p2dHeight(55),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(200),
+            height: p2dHeight(70),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(500),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideRegisterAlert();
+          }}
+        />
+        {/* <AwesomeAlert
+          show={showFullLoginDataAlert}
+          showProgress={false}
+          title="请输入完整的登录信息"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(50),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(35),
+            color: 'white',
+            lineHeight: p2dHeight(75),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(200),
+            height: p2dHeight(90),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(600),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideFullLoginDataAlert();
+          }}
+        />
+        <AwesomeAlert
+          show={showIncorrectPhoneAlert}
+          showProgress={false}
+          title="请输入完整的手机号"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(50),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(35),
+            color: 'white',
+            lineHeight: p2dHeight(75),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(200),
+            height: p2dHeight(90),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(600),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideIncorrectPhoneAlert();
+          }}
+        />
+
+        <AwesomeAlert
+          show={showLoginFailAlert}
+          showProgress={false}
+          title="登录失败,检查登录信息无误后再提交"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(50),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(35),
+            color: 'white',
+            lineHeight: p2dHeight(75),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(200),
+            height: p2dHeight(90),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(600),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideLoginFailAlert();
+          }}
+        />
+
+        <AwesomeAlert
+          show={showUnbindDoctorAlert}
+          showProgress={false}
+          title="您还未绑定医生,绑定后再扫码"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(50),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(35),
+            color: 'white',
+            lineHeight: p2dHeight(75),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(200),
+            height: p2dHeight(90),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(600),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideUnbindDoctorAlert();
+          }}
+        />
+
+        <AwesomeAlert
+          show={showRestartScanAlert}
+          showProgress={false}
+          title="请重新扫码"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(50),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(35),
+            color: 'white',
+            lineHeight: p2dHeight(75),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(200),
+            height: p2dHeight(90),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(600),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideRestartScanAlert();
+          }}
+        /> */}
         <TopBar
           hideBack={false}
           pageName="用户登录"

@@ -165,7 +165,7 @@ class cart extends Component {
                         height: p2dWidth(200),
                       }}
                       source={{
-                        uri: $conf.resource_fdfs + item.homeThumbUrl,
+                        uri: $conf.resource_oss + item.homeThumbUrl,
                         // $conf.resource_fdfs +
                         // item.orgProductInfo.productInfo.homeThumbUrl,
                       }}

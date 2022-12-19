@@ -1,3 +1,5 @@
+import {p2dWidth} from './utils';
+
 // 公共定义
 export const EquipmentStatus = {
   //正常
@@ -26,6 +28,8 @@ export const OrderStatus = {
   OS_Paied: 1,
   //已取药
   OS_Taked: 2,
+  //部分出药
+  OS_PartialTake: 9,
 };
 
 export const PayStatus = {
@@ -105,3 +109,49 @@ export const LockTag = {
   // 不锁定
   LT_UnLock: 0,
 };
+
+export const widthArr = [
+  p2dWidth(60),
+  p2dWidth(110),
+  p2dWidth(110),
+  p2dWidth(240),
+  p2dWidth(60),
+  p2dWidth(60),
+  p2dWidth(60),
+  p2dWidth(130),
+  p2dWidth(90),
+  p2dWidth(130),
+];
+
+export const tableHead = [
+  '序号',
+  '货道编号',
+  '货道属性',
+  '商品名称',
+  '实际',
+  '最大',
+  '锁定',
+  '生产批次',
+  '详情',
+  '操作',
+];
+
+export const drugWidthArr = [
+  p2dWidth(80),
+  p2dWidth(150),
+  p2dWidth(300),
+  p2dWidth(150),
+  p2dWidth(150),
+  p2dWidth(150),
+  p2dWidth(80),
+];
+
+export const drugHead = [
+  '序号',
+  '商品编号',
+  '商品名称',
+  '实时库存',
+  '最大容量',
+  '锁定库存',
+  '详情',
+];

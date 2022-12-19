@@ -14,9 +14,12 @@ import {store} from '../store/store';
 import api from '../js/cloudApi';
 import {upgradeOrder} from '../action';
 import ModalSelector from 'react-native-modal-selector';
+import CommonAlert from '../components/commonAlert';
+
+import AwesomeAlert from 'react-native-awesome-alerts';
 class order extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       totalPrice: 0,
@@ -33,6 +36,8 @@ class order extends Component {
       drugArr: [],
       mobile: '',
       submitable: true,
+      showUnbindDoctor: false,
+      showUnbindPatientAlert: false,
     };
   }
 
@@ -71,6 +76,7 @@ class order extends Component {
       'mobile',
       store.getState().logged.mobile,
     );
+    console.info('----------didMount------', firstPatient.patientId);
     let doctor = await api.getPatientRelateDoctorList({
       patientId: firstPatient.patientId,
       orgId: store.getState().equipmentInfo.equipmentGroupInfo.orgId,
@@ -87,7 +93,10 @@ class order extends Component {
         formattedPatientList,
       );
     } else {
-      Alert.alert('选中就诊人没有关联的医生,请仔细审核');
+      // Alert.alert('选中就诊人没有关联的医生,请仔细审核');
+      this.setState({
+        showUnbindDoctor: true,
+      });
     }
 
     let cart = store.getState().cart;
@@ -138,11 +147,21 @@ class order extends Component {
     this.setState({submitable: false});
     const {doctorId, patientId} = this.state;
     if (!doctorId) {
-      Alert.alert('关联医生不存在,请重新审核订单信息');
+      // Alert.alert('关联医生不存在,请重新审核订单信息');
+
+      this.setState({
+        showUnbindDoctor: true,
+        submitable: true,
+      });
+
       return;
     }
     if (!patientId) {
-      Alert.alert('关联就诊人不存在,请重新审核订单信息');
+      // Alert.alert('关联就诊人不存在,请重新审核订单信息');
+      this.setState({
+        showUnbindPatientAlert: true,
+        submitable: true,
+      });
       return;
     }
     let orderInfo = store.getState().orderInfo;
@@ -159,10 +178,11 @@ class order extends Component {
     );
     try {
       let res = await api.submitEOrder(orderInfo);
-      orderInfo.serialNo = res.serialNo;
+      orderInfo.serialNo = res.orderInfo.serialNo;
+      console.info('serialNo----==================', res.orderInfo.serialNo);
       let action = upgradeOrder(orderInfo);
       store.dispatch(action);
-
+      this.setState({submitable: true});
       NativeModules.RaioApi.debug(
         {
           msg: `order page submitOrder success, ${JSON.stringify(res)}`,
@@ -188,6 +208,7 @@ class order extends Component {
   }
 
   async getPatientRelateDoctor(patientId) {
+    console.info('---------deubg----get---------', patientId);
     let doctor = await api.getPatientRelateDoctorList({
       patientId: patientId,
       orgId: store.getState().equipmentInfo.equipmentGroupInfo.orgId,
@@ -208,6 +229,18 @@ class order extends Component {
     });
   }
 
+  hideUnbindDoctor() {
+    this.setState({
+      showUnbindDoctor: false,
+    });
+  }
+
+  hideUnbindPatientAlert() {
+    this.setState({
+      showUnbindPatientAlert: false,
+    });
+  }
+
   componentWillUnmount() {
     console.debug('destroy page 【 order 】');
   }
@@ -223,6 +256,8 @@ class order extends Component {
       totalNumber,
       totalPrice,
       patientId,
+      showUnbindDoctor,
+      showUnbindPatientAlert,
     } = this.state;
     return (
       <View
@@ -234,9 +269,137 @@ class order extends Component {
             position: 'relative',
           },
         ]}>
+        {/* <CommonAlert
+          showAlert={showUnbindDoctor}
+          title="关联医生不存在,请重新审核订单信息"
+          confirmText="确定"></CommonAlert>
+        <CommonAlert
+          showAlert={showUnbindDoctor1}
+          title="关联医生不存在,请重新审核订单信息"
+          confirmText="确定"></CommonAlert>
+        <CommonAlert
+          showAlert={showUnbindPatientAlert}
+          title="关联就诊人不存在,请重新审核订单信息"
+          confirmText="确定"></CommonAlert>
+        <CommonAlert
+          showAlert={showUnbindPatientAlert1}
+          title="关联就诊人不存在,请重新审核订单信息"
+          confirmText="确定"></CommonAlert> */}
+
+        <AwesomeAlert
+          show={showUnbindPatientAlert}
+          showProgress={false}
+          title="关联就诊人不存在,请重新审核订单信息"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(35),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            marginTop: p2dHeight(20),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(30),
+            color: 'white',
+            lineHeight: p2dHeight(55),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(120),
+            height: p2dHeight(60),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(500),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideUnbindPatientAlert();
+          }}
+        />
+        <AwesomeAlert
+          show={showUnbindDoctor}
+          showProgress={false}
+          title="关联医生不存在,请重新审核订单信息"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          // cancelText="No, cancel"
+          confirmText="确定"
+          confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(35),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            marginTop: p2dHeight(20),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(30),
+            color: 'white',
+            lineHeight: p2dHeight(55),
+            textAlign: 'center',
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(120),
+            height: p2dHeight(60),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(500),
+            height: p2dHeight(300),
+          }}
+          onConfirmPressed={() => {
+            this.hideUnbindDoctor();
+          }}
+        />
+
         <TopBar
-          count={this.state.count}
-          // count={150}
+          // count={this.state.count}
+          count={150}
           pageName="确认订单信息"
           hideBack={true}
           navigation={this.props.navigation}
@@ -281,14 +444,7 @@ class order extends Component {
               marginLeft: p2dWidth(30),
               marginRight: p2dWidth(30),
             }}>
-            <View
-            // style={{
-            //   position: 'absolute',
-            //   top: p2dHeight(200),
-            //   borderWidth: 3,
-            //   borderColor: 'red', ///
-            // }}
-            >
+            <View>
               <Text style={{fontSize: p2dWidth(33)}}>选择就诊人</Text>
             </View>
             <View
@@ -313,9 +469,8 @@ class order extends Component {
                   // paddingTop: p2dHeight(7),
                   textAlign: 'center',
 
-                  borderWidth: p2dWidth(2),
-                  borderColor: 'rgba(0,191,206,0.7)',
                   borderRadius: p2dWidth(65),
+
                   // borderColor: 'purple',
                   // borderWidth: 2,
                   // borderStyle: 'solid',
@@ -396,15 +551,15 @@ class order extends Component {
             style={{
               marginTop: p2dHeight(30),
               borderRadius: p2dWidth(20),
-              // borderColor: '#d9d9d9',
+              borderColor: '#d9d9d9',
 
-              borderColor: 'yellow',
+              // borderColor: 'yellow',
               borderWidth: 2,
               display: 'flex',
               height: '100%',
               flexDirection: 'column',
-              // backgroundColor: '#fafafa',
-              backgroundColor: 'green',
+              backgroundColor: '#fafafa',
+              // backgroundColor: 'green',
               marginTop: p2dHeight(-1),
             }}>
             {drugArr.map((item) => (
@@ -412,6 +567,9 @@ class order extends Component {
                 style={{
                   height: p2dHeight(230),
                   position: 'relative',
+                  borderBottomColor: '#d9d9d9',
+                  borderBottomWidth: p2dHeight(2),
+                  borderBottomStyle: 'solid',
                 }}
                 key={item.orgProductId}>
                 <Image
@@ -423,7 +581,7 @@ class order extends Component {
                     left: p2dHeight(60),
                   }}
                   source={{
-                    uri: $conf.resource_fdfs + item.homeThumbUrl,
+                    uri: $conf.resource_oss + item.homeThumbUrl,
                   }}
                 />
 
@@ -462,11 +620,11 @@ class order extends Component {
                   }}>
                   <Text style={{fontSize: p2dWidth(35)}}>x{item.num}</Text>
                 </View>
-                <View
+                {/* <View
                   style={{
                     backgroundColor: '#d9d9d9',
                     height: p2dHeight(2),
-                  }}></View>
+                  }}></View> */}
               </View>
             ))}
           </ScrollView>
@@ -560,7 +718,7 @@ class order extends Component {
             <Text
               style={{
                 textAlign: 'center',
-                paddingTop: p2dHeight(20),
+                paddingTop: p2dHeight(22),
                 fontSize: p2dWidth(36),
                 color: '#FFFFFF',
               }}>

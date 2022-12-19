@@ -21,13 +21,20 @@ const initialState = {
   loginStatus: false,
   // userId: 'd6575b3825c24c26a7ee2b1ad385e411',
   userId: '',
-  mobile: '',
+  mobile: '123',
   serialNo: '',
   orderId: '',
   logged: {
     userId: '',
     mobile: '',
   },
+  slotNo: '1,2',
+  adminData: {
+    token: '',
+    phone: '',
+    adminId: '',
+  },
+  productId: '',
 };
 
 let homeReducer = (state = initialState, action) => {
@@ -135,6 +142,27 @@ let homeReducer = (state = initialState, action) => {
     return {
       ...state,
       logged: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_SLOT_NO) {
+    return {
+      ...state,
+      slotNo: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_ADMIN_DATA) {
+    return {
+      ...state,
+      adminData: action.payload,
+    };
+  }
+
+  if (action.type === ActionType.ACTION_UPDATE_PRODUCT_ID) {
+    return {
+      ...state,
+      productId: action.payload,
     };
   }
 };

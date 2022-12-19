@@ -41,7 +41,8 @@ class fail extends Component {
   async componentDidMount() {
     let orderInfo = store.getState().orderInfo;
 
-    let applyRefundUrl = $conf.applyRefundUrl + `&o=${orderInfo.serialNo}`;
+    let applyRefundUrl =
+      $conf.applyRefundUrl + `?order_id=${orderInfo.orderId}`;
     this.setState({serialNo: orderInfo.serialNo, applyRefundUrl});
   }
 
@@ -105,7 +106,9 @@ class fail extends Component {
               <View style={customStyle.productItem}>
                 <Image
                   style={customStyle.productImage}
-                  source={{uri: $conf.resource_oss + item.homeThumb}}
+                  source={{
+                    uri: $conf.resource_oss + item.homeThumbUrl,
+                  }}
                 />
                 <View style={customStyle.productInfo}>
                   <Text style={customStyle.productName}>{item.name}</Text>

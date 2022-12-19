@@ -17,7 +17,7 @@ import {
   PickUpType,
 } from '../js/common';
 import {connect} from 'react-redux';
-import {loadSound} from '../js/utils';
+// import {loadSound} from '../js/utils';
 
 class list extends Component {
   constructor() {
@@ -58,7 +58,7 @@ class list extends Component {
       dragArr: allDrag,
     });
     // alert(store.getState().sceneStr);
-    loadSound(require('../assets/mp3/chooseProduct.mp3'));
+    // loadSound(require('../assets/mp3/chooseProduct.mp3'));
   }
 
   componentWillUnmount() {

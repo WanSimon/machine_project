@@ -84,6 +84,7 @@ class Content extends Component {
           display: 'flex',
           flexDirection: 'row',
           position: 'relative',
+          backgroundColor: '#FFFFFF',
         }}>
         {/* <View
           style={{
@@ -97,7 +98,7 @@ class Content extends Component {
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            // backgroundColor: 'blue',
+            backgroundColor: '#FFFFFF',
           }}>
           <View
             style={{
@@ -109,6 +110,7 @@ class Content extends Component {
               justifyContent: 'space-between',
               // marginRight: p2dWidth(30),
               // borderColor: 'green',
+              backgroundColor: '#FFFFFF',
             }}>
             {this.props.dragArr.map((item) => (
               <View
@@ -118,10 +120,12 @@ class Content extends Component {
                   marginBottom: p2dHeight(20),
                   float: 'left',
                   marginTop: p2dHeight(40),
-                  borderBottomWidth: p2dWidth(3),
-                  borderBottomColor: '#D1D1D1',
+                  // borderBottomWidth: p2dWidth(3),
+                  // borderBottomColor: '#D1D1D1',
                   position: 'relative',
-                  // backgroundColor: 'red',
+
+                  backgroundColor: '#E6E6E6',
+                  borderRadius: p2dWidth(6),
                 }}
                 key={item.orgProductInfo.productInfo.productId}>
                 <Image
@@ -129,12 +133,12 @@ class Content extends Component {
                     width: p2dWidth(160),
                     height: p2dWidth(160),
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
+                    top: p2dHeight(8),
+                    left: p2dWidth(8),
                   }}
                   source={{
                     uri:
-                      $conf.resource_fdfs +
+                      $conf.resource_oss +
                       item.orgProductInfo.productInfo.homeThumbUrl,
                   }}
                 />
@@ -183,7 +187,7 @@ class Content extends Component {
                 <Text
                   style={{
                     position: 'absolute',
-                    left: p2dWidth(10),
+                    left: p2dWidth(20),
                     top: p2dHeight(180),
                     height: p2dHeight(40),
                     lineHeight: p2dHeight(40),
@@ -197,22 +201,31 @@ class Content extends Component {
                   onPress={() => this.updateCart(1, item)}
                   style={{
                     position: 'absolute',
-                    right: p2dWidth(0),
-                    top: p2dHeight(175),
-                    width: p2dWidth(40),
-                    height: p2dWidth(40),
+                    right: 0,
+                    top: p2dHeight(165),
+                    width: p2dWidth(60),
+                    height: p2dWidth(60),
                     // borderWidth: 1,
                     // borderColor: 'green',
+                    // position: 'relative',
                   }}>
                   <Image
-                    style={{width: '100%', height: '100%'}}
+                    style={{
+                      position: 'absolute',
+                      bottom: p2dWidth(8),
+                      right: p2dWidth(8),
+                      width: p2dWidth(40),
+                      height: p2dWidth(40),
+                      // borderWidth: 1,
+                      // borderColor: 'black',
+                    }}
                     source={require('../assets/bigPlus.png')}
                   />
                 </TouchableOpacity>
                 <Text
                   style={{
                     position: 'absolute',
-                    right: p2dWidth(38),
+                    right: p2dWidth(43),
                     top: p2dHeight(185),
                     width: p2dWidth(84),
                     height: p2dHeight(30),
@@ -233,14 +246,26 @@ class Content extends Component {
                   <TouchableOpacity
                     style={{
                       position: 'absolute',
-                      right: p2dWidth(114),
-                      top: p2dHeight(175),
-                      width: p2dWidth(40),
-                      height: p2dWidth(40),
+                      right: p2dWidth(110),
+                      top: p2dHeight(165),
+                      width: p2dWidth(60),
+                      height: p2dWidth(60),
+                      // borderWidth: 1,
+                      // borderColor: 'green',
                     }}
                     onPress={() => this.updateCart(-1, item)}>
                     <Image
-                      style={{width: '100%', height: '100%'}}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        width: p2dWidth(40),
+                        height: p2dWidth(40),
+                        // borderColor: 'black',
+                        // borderWidth: 1,
+                        position: 'absolute',
+                        bottom: p2dWidth(8),
+                        right: p2dWidth(8),
+                      }}
                       source={require('../assets/bigReduce.png')}
                     />
                   </TouchableOpacity>
@@ -253,6 +278,7 @@ class Content extends Component {
                         width: p2dWidth(431),
                         height: p2dHeight(229),
                         borderWidth: p2dWidth(2),
+                        borderRadius: p2dWidth(6),
                         borderColor: 'yellow',
                       }}></View>
                     <ImageBackground

@@ -13,9 +13,16 @@ import Fail from './src/pages/fail';
 import Setting from './src/pages/setting';
 import Login from './src/pages/login';
 import Pay from './src/pages/pay';
+import Repertory from './src/pages/repertory';
 import {createStackNavigator} from 'react-navigation-stack';
 
 import {createAppContainer} from 'react-navigation';
+import Unshelve from './src/pages/unshelve';
+import Replenishment from './src/pages/replenishment';
+import Channel from './src/pages/channel';
+import Admin from './src/pages/admin';
+import Maintain from './src/pages/maintain';
+import DrugDetail from './src/pages/drugDetail';
 
 const AppNavigator = createStackNavigator(
   {
@@ -30,6 +37,16 @@ const AppNavigator = createStackNavigator(
     login: {screen: Login, navigationOptions: {headerShown: false}},
     setting: {screen: Setting, navigationOptions: {headerShown: false}},
     pay: {screen: Pay, navigationOptions: {headerShown: false}},
+    repertory: {screen: Repertory, navigationOptions: {headerShown: false}},
+    unshelve: {screen: Unshelve, navigationOptions: {headerShown: false}},
+    replenishment: {
+      screen: Replenishment,
+      navigationOptions: {headerShown: false},
+    },
+    channel: {screen: Channel, navigationOptions: {headerShown: false}},
+    admin: {screen: Admin, navigationOptions: {headerShown: false}},
+    maintain: {screen: Maintain, navigationOptions: {headerShown: false}},
+    drugDetail: {screen: DrugDetail, navigationOptions: {headerShown: false}},
   },
   {
     initialRouteName: 'start',

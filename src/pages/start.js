@@ -190,7 +190,7 @@ class start extends Component {
         res.equipmentInfo;
         let equipmentInfo = res.equipmentInfo;
         //获取设备详情
-        const equipmentInfoDetailRes = await api.getEquipmentDetail(
+        let equipmentInfoDetailRes = await api.getEquipmentDetail(
           equipmentInfo.equipmentId,
           equipmentInfo.mac,
         );
@@ -212,7 +212,9 @@ class start extends Component {
             },
             null,
           );
-          const action = await upgradeEquipmentInfo(
+          equipmentInfoDetailRes.equipmentDetailInfo.drugChannel =
+            res.equipmentInfo.drugChannel;
+          const action = upgradeEquipmentInfo(
             equipmentInfoDetailRes.equipmentDetailInfo,
           );
           store.dispatch(action);

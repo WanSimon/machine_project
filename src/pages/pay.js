@@ -12,12 +12,14 @@ import QRCode from 'react-native-qrcode-svg';
 import {store} from '../store/store';
 import api from '../js/cloudApi';
 import {PayStatus, TradeType} from '../js/common';
+
+import {OrderStatus} from '../js/common';
 class pay extends Component {
   constructor() {
     super();
 
     this.state = {
-      qrcode: '',
+      qrcode: 'http://www.baidu.com',
       aliPayUrl: '',
       wechatPayUrl: '',
       totalPrice: 0,
@@ -29,6 +31,7 @@ class pay extends Component {
       patientId: '',
       name: '',
       payMode: '',
+      payUrlCode: '',
       formattedPatientList: [],
 
       showPayCode: false,
@@ -41,18 +44,14 @@ class pay extends Component {
     console.debug('go to page 【pay】');
 
     let cart = store.getState().cart;
+    console.info('--------------1totalPrice', cart);
     let orderInfo = store.getState().orderInfo;
 
-    console.info('order page get redux orderInfo = %o', orderInfo);
-
-    NativeModules.RaioApi.debug(
-      {
-        msg: `order page get redux orderInfo = ${JSON.stringify(orderInfo)}`,
-        method: 'order.componentDidMount',
-      },
-      null,
-    );
-
+    let userId = store.getState().logged.userId;
+    // let payUrlCode = $conf.payUrl + '?userId=' + userId + '&orderId=' + orderId;
+    // console.info('--------------totalPrice', cart.totalPrice);
+    // console.info('pay-------------payUrl', payUrlCode);
+    // this.setState({payUrlCode});
     this.setState({
       tradeNo: orderInfo.innerOrderNo,
       totalPrice: cart.totalPrice,
@@ -137,6 +136,7 @@ class pay extends Component {
     if (res.status === PayStatus.PS_SUCCESS) {
       //取药
       try {
+        await api.updateOrderStatus(this.state.orderId, OrderStatus.OS_Paied);
         console.debug('开始取药.');
         //todo 取药
         this.props.navigation.replace('wait');
@@ -274,16 +274,17 @@ class pay extends Component {
                 color: '#333333',
                 marginLeft: p2dWidth(40),
               }}>
-              | 支付方式
+              | 扫码支付
             </Text>
           </View>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={{
               position: 'absolute',
               right: p2dWidth(235),
-              top: p2dHeight(236),
+              top: p2dHeight(100),
               width: p2dWidth(260),
               height: p2dHeight(110),
+              // opacity: 0,
             }}
             onPress={() => this.switchPayUrl('ali')}>
             <ImageBackground
@@ -305,7 +306,7 @@ class pay extends Component {
             style={{
               position: 'absolute',
               left: p2dWidth(235),
-              top: p2dHeight(236),
+              top: p2dHeight(100),
               width: p2dWidth(260),
               height: p2dHeight(110),
             }}
@@ -323,12 +324,25 @@ class pay extends Component {
                   : require('../assets/wechat.png')
               }
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+
+          <Text
+            style={{
+              position: 'absolute',
+              top: p2dHeight(170),
+              width: '100%',
+              textAlign: 'center',
+              color: '#333333',
+              fontWeight: '500',
+              fontSize: p2dWidth(38),
+            }}>
+            请扫码支付
+          </Text>
           <View
             style={{
               position: 'absolute',
               right: p2dWidth(360),
-              top: p2dHeight(437),
+              top: p2dHeight(300),
               width: p2dWidth(360),
               height: p2dHeight(360),
               flex: 1,
@@ -336,20 +350,21 @@ class pay extends Component {
               alignItems: 'center',
             }}>
             {this.state.qrcode ? (
-              <QRCode size={p2dWidth(360)} value={this.state.qrcode} />
-            ) : null}
+              <QRCode size={p2dWidth(360)} value="http://www.baidu.com" />
+            ) : // <QRCode size={p2dWidth(360)} value={this.state.payUrlCode} />
+            null}
           </View>
           <Text
             style={{
               position: 'absolute',
-              top: p2dHeight(830),
+              top: p2dHeight(700),
               width: '100%',
               textAlign: 'center',
               color: '#BEBEBE',
               fontWeight: '500',
-              fontSize: p2dWidth(34),
+              fontSize: p2dWidth(25),
             }}>
-            扫码支付
+            支持微信、支付宝等扫码支付
           </Text>
           <TouchableOpacity
             style={{

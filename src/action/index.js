@@ -14,6 +14,9 @@ export const ActionType = {
   ACTION_UPDATE_SERIAL_NO: 'action_update_serial_no',
   ACTION_UPDATE_ORDER_ID: 'action_update_order_id',
   ACTION_UPDATE_LOGGED: 'action_update_logged',
+  ACTION_UPDATE_SLOT_NO: 'action_update_slot_no',
+  ACTION_UPDATE_ADMIN_DATA: 'action_update_admin_data',
+  ACTION_UPDATE_PRODUCT_ID: 'action_update_product_id',
 };
 
 //更新设备信息
@@ -151,5 +154,26 @@ export function updateLogged(user) {
   return {
     type: ActionType.ACTION_UPDATE_LOGGED,
     payload: user,
+  };
+}
+
+export function updateSlotNo(slotNo) {
+  return {
+    type: ActionType.ACTION_UPDATE_SLOT_NO,
+    payload: slotNo,
+  };
+}
+
+export function updateAdminData(adminData) {
+  return {
+    type: ActionType.ACTION_UPDATE_ADMIN_DATA,
+    payload: adminData,
+  };
+}
+
+export function updateProductId(productId) {
+  return {
+    type: ActionType.ACTION_UPDATE_PRODUCT_ID,
+    payload: productId,
   };
 }

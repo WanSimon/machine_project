@@ -10,15 +10,18 @@ import {
   NativeModules,
   BackHandler,
   TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import TopBar from '../components/topbar';
-import {p2dWidth, parseTime} from '../js/utils';
+import {p2dHeight, p2dWidth, parseTime} from '../js/utils';
 import Conf from '../js/conf';
 import {AddBlankLine, AddTextContent} from '../js/ticketHelper';
 import api from '../js/cloudApi';
 
+import AwesomeAlert from 'react-native-awesome-alerts';
 import {store} from '../store/store';
 import {upgradeEquipmentInfo} from '../action';
+import CommonAlert from '../components/commonAlert';
 class Setting extends Component {
   constructor() {
     super();
@@ -31,6 +34,8 @@ class Setting extends Component {
       },
       inputX: '1', //列
       inputY: '1', //层
+      showExitAlert: false,
+      showDataUpdateAlert: false,
     };
     this.queue = new Set();
   }
@@ -266,47 +271,10 @@ class Setting extends Component {
     }
   }
 
-  getMac() {
-    return new Promise((resolve, reject) => {
-      if (Conf.debug) {
-        NativeModules.RaioApi.debug(
-          {
-            msg: `get mac success, debug mode, ${Conf.mac}`,
-            method: 'start.getMac',
-          },
-          null,
-        );
-        console.info(`get mac success, debug mode, ${Conf.mac}`);
-        resolve(Conf.mac);
-      } else {
-        NativeModules.RaioApi.getMac((res) => {
-          if (res) {
-            res = res.replace(/:/g, '');
-            console.info(`get mac success, ${res}`);
-            NativeModules.RaioApi.debug(
-              {msg: `get mac success, ${res}`, method: 'start.getMac'},
-              null,
-            );
-            resolve(res);
-          } else {
-            NativeModules.RaioApi.debug(
-              {
-                msg: `get mac fail, ${JSON.stringify(res)}`,
-                method: 'start.getMac',
-              },
-              null,
-            );
-            console.info(`get mac fail, ${JSON.stringify(res)}`);
-            reject(res);
-          }
-        });
-      }
-    });
-  }
-
   async getEquipmentInfo() {
-    let mac = await this.getMac();
-    let res = await api.getEquipmentInfo(null, mac);
+    const equipmentId =
+      store.getState().equipmentInfo.equipmentProductInfo.equipmentId;
+    let res = await api.getEquipmentInfo(equipmentId, null);
     if (res?.equipmentInfo) {
       res.equipmentInfo;
       let equipmentInfo = res.equipmentInfo;
@@ -327,7 +295,9 @@ class Setting extends Component {
           equipmentInfoDetailRes.equipmentDetailInfo,
         );
         store.dispatch(action);
-        Alert.alert('更新数据信息成功');
+        this.setState({
+          showDataUpdateAlert: true,
+        });
       } else {
         console.info(
           'setting page, getEquipmentInfo,getEquipmentDetail something wrong, %o, %o',
@@ -359,125 +329,335 @@ class Setting extends Component {
     ]);
   }
 
+  showExitAlert() {
+    this.setState({
+      showExitAlert: true,
+    });
+  }
+
+  hideExitAlert() {
+    this.setState({
+      showExitAlert: false,
+    });
+  }
+
   confirmCallback() {
     if (this.refs.upModal) {
       this.refs.upModal.cancel();
     }
   }
   render() {
+    const {showExitAlert, showDataUpdateAlert} = this.state;
     return (
       <View style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
-        <TopBar
-          pageName="维护模式"
-          disableCount={true}
-          navigation={this.props.navigation}
+        <CommonAlert
+          showAlert={showDataUpdateAlert}
+          title="数据更新成功"
+          confirmText="确定"></CommonAlert>
+        <AwesomeAlert
+          show={showExitAlert}
+          showProgress={false}
+          title="确定退出App"
+          // message="I have a message for you!"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={true}
+          showConfirmButton={true}
+          cancelText="取消"
+          confirmText="确定"
+          // confirmButtonColor="#DD6B55"
+          titleStyle={{
+            fontSize: p2dWidth(35),
+            // borderWidth: 2,
+            // borderColor: 'yellow',
+            textAlign: 'center',
+            // marginTop: p2dHeight(50),
+            height: p2dHeight(100),
+            // lineHeight: p2dHeight(400),
+          }}
+          // alertContainerStyle={{//最大的
+          //   backgroundColor: 'red',
+          //   color: 'black',
+          //   borderColor: 'black',
+          //   borderWidth: 2,
+          // }}
+          overlayStyle={{
+            //灰影
+            height: '100%',
+          }}
+          confirmButtonTextStyle={{
+            fontSize: p2dWidth(30),
+            color: 'white',
+            lineHeight: p2dHeight(55),
+            textAlign: 'center',
+          }}
+          cancelButtonTextStyle={{
+            fontSize: p2dWidth(35),
+            color: $conf.theme,
+            lineHeight: p2dHeight(55),
+            textAlign: 'center',
+          }}
+          cancelButtonStyle={{
+            backgroundColor: '#FFFFFF',
+            borderColor: $conf.theme,
+            borderWidth: p2dWidth(3),
+            width: p2dWidth(120),
+            height: p2dHeight(70),
+            marginTop: p2dHeight(50),
+          }}
+          confirmButtonStyle={{
+            backgroundColor: $conf.theme,
+            width: p2dWidth(120),
+            height: p2dHeight(70),
+            marginTop: p2dHeight(50),
+          }}
+          contentContainerStyle={{
+            // borderColor: 'red',
+            // borderWidth: 2,
+            marginTop: -p2dHeight(300),
+            width: p2dWidth(500),
+            height: p2dHeight(300),
+          }}
+          onCancelPressed={() => {
+            this.hideExitAlert();
+          }}
+          onConfirmPressed={() => {
+            this.hideExitAlert();
+            BackHandler.exitApp();
+          }}
         />
+        <TopBar
+          pageName="设置"
+          hideBack={false}
+          disableCount={true}
+          disableAdminExit={false}
+          navigation={this.props.navigation}></TopBar>
+
         <View style={customStyle.container}>
           <View style={customStyle.container}>
             <ScrollView style={customStyle.scroll}>
               <Text style={customStyle.textLabel}>硬件测试</Text>
               <View style={customStyle.itemContainer}>
-                <Text style={{flexShrink: 0}}>履带测试</Text>
-                <View style={{flexGrow: 1}}>
-                  <View
+                <Text style={{flexShrink: 0, fontSize: p2dWidth(25)}}>
+                  履带测试
+                </Text>
+                <View
+                  style={{
+                    flexGrow: 1,
+                    // borderColor: 'green',
+                    // borderWidth: 2,
+                    height: p2dHeight(50),
+                    position: 'relative',
+                  }}>
+                  <TextInput
                     style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
+                      // borderColor: 'red',
+                      // borderWidth: 3,
+                      // fontSize: p2dWidth(30),
+                      width: p2dWidth(90),
+                      height: p2dHeight(60),
+                      position: 'absolute',
+                      top: -p2dHeight(8),
+                      left: p2dWidth(70),
+                      fontSize: p2dWidth(25),
+                    }}
+                    // keyboardType="numeric" //弹出键盘类型
+                    keyboardType="number-pad"
+                    value={this.state.inputY}
+                    onChangeText={(val) =>
+                      this.setState({inputY: val})
+                    }></TextInput>
+                  <Text
+                    style={{
+                      // borderColor: 'black',
+                      // borderWidth: 2,
+                      width: p2dWidth(40),
+                      position: 'absolute',
+                      top: p2dHeight(5),
+                      // top: p2dHeight(13),
+                      left: p2dWidth(180),
+                      fontSize: p2dWidth(25),
+                      // fontSize: p2dWidth(30),
                     }}>
-                    <View
-                      style={{
-                        flexGrow: 0,
-                        width: 100,
-                      }}>
-                      <TextInput
-                        style={{
-                          borderColor: 'red',
-                          borderWidth: 3,
-                          fontSize: p2dWidth(32),
-                          width: p2dWidth(200),
-                        }}
-                        // keyboardType="numeric" //弹出键盘类型
-
-                        keyboardType="number-pad"
-                        value={this.state.inputY}
-                        onChangeText={(val) =>
-                          this.setState({inputY: val})
-                        }></TextInput>
-                    </View>
-                    <View style={{flexShrink: 0, marginRight: p2dWidth(20)}}>
-                      <Text>层</Text>
-                    </View>
-                    <View
-                      style={{
-                        flexGrow: 0,
-                        width: 100,
-                      }}>
-                      <TextInput
-                        style={{
-                          borderColor: 'green',
-                          borderWidth: 3,
-                          fontSize: p2dWidth(32),
-                          width: p2dWidth(200),
-                        }}
-                        // keyboardType="numeric" //弹出键盘类型
-                        keyboardType="number-pad"
-                        value={this.state.inputX}
-                        onChangeText={(val) =>
-                          this.setState({inputX: val})
-                        }></TextInput>
-                    </View>
-                    <View style={{flexShrink: 0, marginRight: p2dWidth(20)}}>
-                      <Text>列</Text>
-                    </View>
-                  </View>
+                    层
+                  </Text>
+                  <TextInput
+                    style={{
+                      // borderColor: 'blue',
+                      // borderWidth: 3,
+                      // fontSize: p2dWidth(30),
+                      width: p2dWidth(90),
+                      height: p2dHeight(60),
+                      position: 'absolute',
+                      top: -p2dHeight(8),
+                      left: p2dWidth(290),
+                      fontSize: p2dWidth(25),
+                    }}
+                    // keyboardType="numeric" //弹出键盘类型
+                    keyboardType="number-pad"
+                    value={this.state.inputX}
+                    onChangeText={(val) =>
+                      this.setState({inputX: val})
+                    }></TextInput>
+                  <Text
+                    style={{
+                      // borderColor: 'yellow',
+                      // borderWidth: 2,
+                      width: p2dWidth(40),
+                      position: 'absolute',
+                      // top: p2dWidth(13),
+                      top: p2dHeight(5),
+                      left: p2dWidth(400),
+                      fontSize: p2dWidth(25),
+                      // fontSize: p2dWidth(30),
+                    }}>
+                    列
+                  </Text>
                 </View>
-                <Button
-                  color="#00BFCE"
+                <TouchableOpacity
                   disabled={this.state.btnDisabled.track}
-                  style={{flexShrink: 0}}
+                  style={{
+                    flexShrink: 0,
+                    borderRadius: p2dWidth(5),
+                    backgroundColor: this.state.btnDisabled.track
+                      ? 'grey'
+                      : '#00BFCE',
+                    width: p2dWidth(110),
+                    height: p2dHeight(40),
+                  }}
+                  onPress={() => this.testTrack()}>
+                  <Text
+                    style={{
+                      fontSize: p2dWidth(20),
+                      color: '#FFFFFF',
+                      textAlign: 'center',
+                      lineHeight: p2dHeight(45),
+                    }}>
+                    开始测试
+                  </Text>
+                </TouchableOpacity>
+                {/* <Button
+                  disabled={this.state.btnDisabled.track}
+                  style={{
+                    flexShrink: 0,
+                    borderColor: 'grey',
+                    borderWidth: 3,
+
+                    fontSize: p2dWidth(32),
+                  }}
                   title="开始测试"
                   onPress={this.testTrack.bind(this)}
-                />
+                /> */}
               </View>
               <View
                 style={[customStyle.itemContainer, customStyle.itemContainer2]}>
-                <Text style={{flexShrink: 0}}>打印机测试</Text>
-                <Button
+                <Text style={{flexShrink: 0, fontSize: p2dWidth(25)}}>
+                  打印机测试
+                </Text>
+
+                <TouchableOpacity
+                  disabled={this.state.btnDisabled.print}
+                  style={{
+                    flexShrink: 0,
+                    borderRadius: p2dWidth(5),
+                    backgroundColor: this.state.btnDisabled.print
+                      ? 'grey'
+                      : '#00BFCE',
+                    fontSize: p2dWidth(32),
+                    width: p2dWidth(110),
+                    height: p2dHeight(40),
+                  }}
+                  onPress={() => this.testPrint()}>
+                  <Text
+                    style={{
+                      fontSize: p2dWidth(20),
+                      color: '#FFFFFF',
+                      textAlign: 'center',
+                      lineHeight: p2dHeight(45),
+                    }}>
+                    开始测试
+                  </Text>
+                </TouchableOpacity>
+                {/* <Button
                   color="#00BFCE"
                   disabled={this.state.btnDisabled.print}
-                  style={{flexShrink: 0}}
+                  style={{flexShrink: 0, fontSize: p2dWidth(25)}}
                   title="开始测试"
                   onPress={this.testPrint.bind(this)}
-                />
+                /> */}
               </View>
               <Text style={customStyle.textLabel}>关于本机</Text>
               <View style={customStyle.itemContainer3}>
                 <View style={customStyle.itemContainer4}>
                   <View style={{flexShrink: 0, width: p2dWidth(280)}}>
-                    <Text>退出程序</Text>
+                    <Text style={{fontSize: p2dWidth(25)}}>退出程序</Text>
                   </View>
                   <View style={{flexGrow: 1}} />
-                  <Button
+
+                  <TouchableOpacity
+                    style={{
+                      flexShrink: 0,
+                      borderRadius: p2dWidth(5),
+                      backgroundColor: '#00BFCE',
+                      width: p2dWidth(110),
+                      height: p2dHeight(40),
+                    }}
+                    onPress={() => this.setState({showExitAlert: true})}>
+                    <Text
+                      style={{
+                        fontSize: p2dWidth(20),
+                        color: '#FFFFFF',
+                        textAlign: 'center',
+                        lineHeight: p2dHeight(45),
+                      }}>
+                      退出程序
+                    </Text>
+                  </TouchableOpacity>
+                  {/* <Button
                     color="#00BFCE"
-                    style={{flexShrink: 0}}
+                    style={{flexShrink: 0, fontSize: p2dWidth(25)}}
                     title="退出程序"
-                    onPress={this.exitApp.bind(this)}
-                  />
+                    // onPress={this.exitApp.bind(this)}
+                    onPress={() => this.setState({showExitAlert: true})}
+                  /> */}
                 </View>
               </View>
-              <View style={customStyle.itemContainer3}>
+              <View
+                style={[
+                  customStyle.itemContainer3,
+                  customStyle.itemContainer5,
+                ]}>
                 <View style={customStyle.itemContainer4}>
                   <View style={{flexShrink: 0, width: p2dWidth(280)}}>
-                    <Text>更新药品数据</Text>
+                    <Text style={{fontSize: p2dWidth(25)}}>更新药品数据</Text>
                   </View>
                   <View style={{flexGrow: 1}} />
-                  <Button
+
+                  <TouchableOpacity
+                    style={{
+                      flexShrink: 0,
+                      borderRadius: p2dWidth(5),
+                      backgroundColor: '#00BFCE',
+                      width: p2dWidth(130),
+                      height: p2dHeight(40),
+                    }}
+                    onPress={() => this.getEquipmentInfo()}>
+                    <Text
+                      style={{
+                        fontSize: p2dWidth(20),
+                        color: '#FFFFFF',
+                        textAlign: 'center',
+                        lineHeight: p2dHeight(45),
+                      }}>
+                      更新药品数据
+                    </Text>
+                  </TouchableOpacity>
+                  {/* <Button
                     color="#00BFCE"
-                    style={{flexShrink: 0}}
+                    style={{flexShrink: 0, fontSize: p2dWidth(25)}}
                     title="更新药品数据"
                     onPress={this.getEquipmentInfo.bind(this)}
-                  />
+                  /> */}
                 </View>
               </View>
             </ScrollView>
@@ -518,9 +698,10 @@ const customStyle = StyleSheet.create({
     alignItems: 'center',
     marginLeft: p2dWidth(40),
     marginRight: p2dWidth(40),
+    // padding: p2dWidth(10),
     padding: p2dWidth(10),
     borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.6)',
+    borderColor: 'rgba(80,80,80,0.6)',
     borderStyle: 'solid',
     borderRadius: 4,
   },
@@ -533,7 +714,7 @@ const customStyle = StyleSheet.create({
     marginRight: p2dWidth(40),
     padding: p2dWidth(10),
     borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.6)',
+    borderColor: 'rgba(80,80,80,0.6)',
     borderStyle: 'solid',
     borderRadius: 4,
   },
@@ -542,6 +723,9 @@ const customStyle = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: p2dWidth(10),
+  },
+  itemContainer5: {
+    marginTop: p2dWidth(20),
   },
 });
 

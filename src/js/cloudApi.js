@@ -35,6 +35,15 @@ const router = {
   getPatientRelateDoctorList: '/doctor/getPatientRelateDoctorList',
   updateOrderPayType: '/order/updateOrderPayType',
   getVerifyCode: '/auth/getVerifyCode',
+  getEDrugStocks: '/stock/getEDrugStocks',
+  updateEStock: '/stock/updateEStock',
+  getEDrugStockDetail: '/stock/getEDrugStockDetail',
+  getEProductStocks: '/stock/getEProductStocks',
+  saveEquipmentProduct: '/equipment/saveEquipmentProduct ',
+  getProductInfoByEquipmentId: '/product/getProductInfoByEquipmentId',
+  getProductInfo: '/product/getProductInfo',
+  updateDrugChannel: '/equipment/updateDrugChannel',
+  unbind: '/equipment/unbind',
 };
 
 const ignoreRouter = ['/equipment/heartbeat'];
@@ -520,6 +529,124 @@ class CloudApi {
       console.debug('request getVerifyCode error !! info =', e);
     }
     console.info('getVerifyCode finished');
+    return res;
+  }
+
+  async getEDrugStocks(equipmentId) {
+    console.info(' getEDrugStocks starting');
+    console.info('input<-->', equipmentId);
+    try {
+      res = await this._request('POST', router.getEDrugStocks, {equipmentId});
+    } catch (e) {
+      console.debug('request getEDrugStocks error !! info =', e);
+    }
+    console.info('getEDrugStocks finished');
+    return res;
+  }
+
+  async updateEStock(obj) {
+    console.info('updateEStocks starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.updateEStock, {...obj});
+    } catch (e) {
+      console.debug('request updateEStock error !! info =', e);
+    }
+    console.info('updateEStock finished');
+    return res;
+  }
+
+  async getEDrugStockDetail(obj) {
+    console.info('getEDrugStockDetail starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.getEDrugStockDetail, {...obj});
+    } catch (e) {
+      console.debug('request getEDrugStockDetail error !! info =', e);
+    }
+    console.info('getEDrugStockDetail finished');
+    return res;
+  }
+
+  async getEProductStocks(obj) {
+    console.info('getEProductStocks starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.getEProductStocks, {...obj});
+    } catch (e) {
+      console.debug('request getEProductStocks error !! info =', e);
+    }
+    console.info('getEProductStocks finished');
+    return res;
+  }
+
+  async getProductInfoByEquipmentId(obj) {
+    console.info('getProductInfoByEquipmentId starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.getProductInfoByEquipmentId, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request getProductInfoByEquipmentId error !! info =', e);
+    }
+    console.info('getProductInfoByEquipmentId finished', res);
+    return res;
+  }
+
+  async saveEquipmentProduct(obj) {
+    console.info('saveEquipmentProduct starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.saveEquipmentProduct, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request saveEquipmentProduct error !! info =', e);
+    }
+    console.info('saveEquipmentProduct finished');
+    return res;
+  }
+
+  async getProductInfo(productId) {
+    console.info('getProductInfo starting');
+    console.info('input<-->', productId);
+    try {
+      res = await this._request('POST', router.getProductInfo, {
+        productId,
+      });
+    } catch (e) {
+      console.debug('request getProductInfo error !! info =', e);
+    }
+    console.info('getProductInfo finished');
+    return res;
+  }
+
+  async updateDrugChannel(obj) {
+    console.info('updateDrugChannel starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.updateDrugChannel, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request updateDrugChannel error !! info =', e);
+    }
+    console.info('updateDrugChannel finished');
+    return res;
+  }
+
+  async unbind(obj) {
+    console.info('unbind starting');
+    console.info('input<-->', obj);
+    try {
+      res = await this._request('POST', router.unbind, {
+        ...obj,
+      });
+    } catch (e) {
+      console.debug('request unbind error !! info =', e);
+    }
+    console.info('unbind finished');
     return res;
   }
 }

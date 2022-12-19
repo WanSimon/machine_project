@@ -90,9 +90,13 @@ class wait extends Component {
       store.getState().equipmentInfo.equipmentProductInfo.slotProductInfoList,
     );
 
-    let applyRefundUrl = $conf.applyRefundUrl + `&o=${orderInfo.serialNo}`;
+    let applyRefundUrl = Conf.applyRefundUrl + `?order_id=${orderInfo.orderId}`;
     this.setState({applyRefundUrl});
-
+    console.log(
+      '111111111111-------------------',
+      applyRefundUrl,
+      orderInfo.serialNo,
+    );
     let cartList = store.getState().cart.cartList;
     console.info('cartList====>wait', cartList);
     let drugArr = this.parseCart(cartList);
@@ -148,7 +152,9 @@ class wait extends Component {
     let slotList = [...slotProductInfoList];
     // 该变量用来上传云端库存变更消息
     let slotProductPickupInfoList = [];
-    let result = true;
+    // let result = true;
+    let someSuccess = 0;
+    let someFailure = 0;
     for (let i = 0; i < drugArr.length; i++) {
       let drug = drugArr[i];
       console.log('drug===>wait', drug);
@@ -157,17 +163,24 @@ class wait extends Component {
         (slot) => slot.orgProductInfo.productInfo.productId === drug.productId,
       );
 
-      let isPicked = false;
+      // let isPicked = false;
 
-      for (let j = 0; j < productSlotList.length && isPicked === false; j++) {
+      // for (let j = 0; j < productSlotList.length && isPicked === false; j++) {
+      for (let j = 0; j < productSlotList.length; j++) {
         let slot = productSlotList[j]; //单个已选药品信息
 
         if (slot.realStock > slot.lockStock) {
           let slotNo = slot.slotNo; //eg:slotNo:"1,2"
 
           let productSlotNoArray = slot.slotNo.split(',');
-          let x = productSlotNoArray[0] - 1;
-          let y = 7 - productSlotNoArray[1];
+          let x = 7 - productSlotNoArray[0];
+          let y = productSlotNoArray[1] - 1;
+
+          console.info(
+            'WanSimon------------0,1',
+            productSlotNoArray[0],
+            productSlotNoArray[1],
+          );
 
           //从drugChannel中筛选出单个已选药品的轨道信息
           // let equipment_slot_obj = equipment_slot.filter(
@@ -189,12 +202,13 @@ class wait extends Component {
           };
           //取药
           try {
-            console.info('x--y---wait---page', x, y);
+            console.info('x--y---wait---page---------------------------', x, y);
             x = parseInt(x);
             y = parseInt(y);
-            await this.out(x, y);
+            await this.out(y, x);
             //取药成功
-            isPicked = true;
+            // isPicked = true;
+            someSuccess = 1;
             drugArr[i].status = 2;
             slot.realStock--;
 
@@ -224,7 +238,8 @@ class wait extends Component {
               null,
             );
             // todo 取药失败
-            result = false;
+            // result = false;
+            someFailure = 1;
             drugArr[i].status = 3;
 
             //取药失败不减实际库存
@@ -243,10 +258,10 @@ class wait extends Component {
         }
       }
 
-      if (!isPicked) {
-        break;
-        //alert('取药失败');
-      }
+      // if (!isPicked) {
+      //   break;
+      //   //alert('取药失败');
+      // }
     }
 
     equipmentInfo.equipmentProductInfo.slotProductInfoList = slotList;
@@ -274,14 +289,22 @@ class wait extends Component {
       // lock_product: 0,
       // change_finished_lock_product:
       //   orderInfo.lock_product == LockTag.LT_Lock ? 1 : 0,
-      result: result ? 0 : -1,
+      result: someSuccess ? 0 : -1,
       slotProductChgInfoList: slotProductPickupInfoList,
     };
 
     //取药成功 更改订单状态
-    if (result) {
+    if (someSuccess && someFailure !== 1) {
       //TODO log
       await api.updateOrderStatus(orderInfo.orderId, OrderStatus.OS_Taked);
+    }
+
+    //部分出药,更新订单状态
+    if (someFailure && someSuccess) {
+      await api.updateOrderStatus(
+        orderInfo.orderId,
+        OrderStatus.OS_PartialTake,
+      );
     }
 
     // 上报库存变更记录
@@ -293,7 +316,7 @@ class wait extends Component {
 
     //
 
-    if (result) {
+    if (someSuccess && someFailure === 0) {
       //打印成功小票
       this.print_success();
       setTimeout(() => {
@@ -338,7 +361,7 @@ class wait extends Component {
       //TODO log
       let ticketTemplateInfoList = [];
       //标题
-      let ticketTitle = '欧药师智能药机';
+      let ticketTitle = '未来健康智能柜';
       let obj = AddTextContent(ticketTitle, 1, 1, 1);
       ticketTemplateInfoList.push(obj);
       //间隔
@@ -350,7 +373,7 @@ class wait extends Component {
       obj = AddTextContent(op_date_text, 0, 0, 0, ticketTemplateInfoList);
       ticketTemplateInfoList.push(obj);
       //药机名称
-      let equipmentName = '药  机: ' + info.equipmentGroupInfo.name;
+      let equipmentName = '药  机: ' + info.name;
       obj = AddTextContent(equipmentName, 0, 0, 0, ticketTemplateInfoList);
       ticketTemplateInfoList.push(obj);
       //流水号
@@ -513,7 +536,7 @@ class wait extends Component {
 
       let ticketTemplateInfoList = [];
       //标题
-      let ticketTitle = '欧药师智能药机';
+      let ticketTitle = '未来健康智能柜';
       let obj = AddTextContent(ticketTitle, 1, 1, 1);
       ticketTemplateInfoList.push(obj);
       //间隔
@@ -588,6 +611,13 @@ class wait extends Component {
 
         let applyDesc = '扫码申请退款';
         obj = AddTextContent(applyDesc, 1, 0, 0);
+        ticketTemplateInfoList.push(obj);
+        obj = AddTextContent(
+          '退款流程:未来健康宝->订单详情->申请退款',
+          1,
+          0,
+          0,
+        );
         ticketTemplateInfoList.push(obj);
       } catch (e) {
         alert(e);
@@ -746,7 +776,7 @@ class wait extends Component {
                   height: p2dHeight(200),
                   marginLeft: p2dWidth(40),
                 }}
-                source={{uri: Conf.resource_fdfs + item.homeThumbUrl}}
+                source={{uri: Conf.resource_oss + item.homeThumbUrl}}
               />
               <Text
                 style={{
