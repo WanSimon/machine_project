@@ -20,23 +20,17 @@ class pay extends Component {
 
     this.state = {
       qrcode: 'http://www.baidu.com',
-      aliPayUrl: '',
-      wechatPayUrl: '',
+      // aliPayUrl: '',
+      // wechatPayUrl: '',
       totalPrice: 0,
       //订单内部编码
       tradeNo: '',
       orderId: '',
-      orgId: '',
-      textInputValue: '',
-      patientId: '',
-      name: '',
-      payMode: '',
-      payUrlCode: '',
-      formattedPatientList: [],
-
-      showPayCode: false,
+      // orgId: '',
+      // payMode: '',
+      payUrl: '',
     };
-    this.switchEnd = true;
+    // this.switchEnd = true;
     this.unload = false;
   }
 
@@ -48,6 +42,7 @@ class pay extends Component {
     let orderInfo = store.getState().orderInfo;
 
     let userId = store.getState().logged.userId;
+    console.info('-----userId--------', orderId, userId);
     // let payUrlCode = $conf.payUrl + '?userId=' + userId + '&orderId=' + orderId;
     // console.info('--------------totalPrice', cart.totalPrice);
     // console.info('pay-------------payUrl', payUrlCode);
@@ -56,79 +51,79 @@ class pay extends Component {
       tradeNo: orderInfo.innerOrderNo,
       totalPrice: cart.totalPrice,
       orderId: orderInfo.orderId,
-      payMode: 'ali',
+      // payMode: 'ali',
     }); //准备删除
-    let res = await this.pay(orderInfo.innerOrderNo, 'ali');
-    let payUrl = res.payReqParam.payUrl;
-    this.setState({qrcode: payUrl, aliPayUrl: payUrl});
+    // let res = await this.pay(orderInfo.innerOrderNo, 'ali');
+    // let payUrl = res.payReqParam.payUrl;
+    // this.setState({qrcode: payUrl, aliPayUrl: payUrl});
 
     await this.getOrderPayStatus(orderInfo.innerOrderNo);
   }
 
-  async switchPayUrl(payMode) {
-    if (!this.switchEnd || payMode === this.state.payMode) {
-      return;
-    }
+  // async switchPayUrl(payMode) {
+  //   if (!this.switchEnd || payMode === this.state.payMode) {
+  //     return;
+  //   }
 
-    const {tradeNo, aliPayUrl, wechatPayUrl, orderId} = this.state;
-    this.switchEnd = false;
-    this.setState({payMode: payMode});
-    if (payMode === 'ali') {
-      if (aliPayUrl === '') {
-        let res = await this.pay(tradeNo, payMode);
-        let payUrl = res.payReqParam.payUrl;
-        console.info('ali', payUrl);
-        this.setState({qrcode: payUrl, aliPayUrl: payUrl});
-      } else {
-        this.setState({qrcode: this.state.aliPayUrl});
-      }
-      await api.updateOrderPayType({
-        payType: 1,
-        orderId,
-      });
-    }
+  //   const {tradeNo, aliPayUrl, wechatPayUrl, orderId} = this.state;
+  //   this.switchEnd = false;
+  //   this.setState({payMode: payMode});
+  //   if (payMode === 'ali') {
+  //     if (aliPayUrl === '') {
+  //       let res = await this.pay(tradeNo, payMode);
+  //       let payUrl = res.payReqParam.payUrl;
+  //       console.info('ali', payUrl);
+  //       this.setState({qrcode: payUrl, aliPayUrl: payUrl});
+  //     } else {
+  //       this.setState({qrcode: this.state.aliPayUrl});
+  //     }
+  //     await api.updateOrderPayType({
+  //       payType: 1,
+  //       orderId,
+  //     });
+  //   }
 
-    if (payMode === 'wechat') {
-      if (wechatPayUrl === '') {
-        let res = await this.pay(tradeNo, payMode);
-        let payUrl = res.payReqParam.payUrl;
-        console.info('wechat', payUrl);
-        this.setState({
-          qrcode: payUrl,
-          wechatPayUrl: payUrl,
-        });
-      } else {
-        this.setState({qrcode: this.state.wechatPayUrl});
-      }
+  //   if (payMode === 'wechat') {
+  //     if (wechatPayUrl === '') {
+  //       let res = await this.pay(tradeNo, payMode);
+  //       let payUrl = res.payReqParam.payUrl;
+  //       console.info('wechat', payUrl);
+  //       this.setState({
+  //         qrcode: payUrl,
+  //         wechatPayUrl: payUrl,
+  //       });
+  //     } else {
+  //       this.setState({qrcode: this.state.wechatPayUrl});
+  //     }
 
-      await api.updateOrderPayType({
-        payType: 0,
-        orderId,
-      });
-    }
+  //     await api.updateOrderPayType({
+  //       payType: 0,
+  //       orderId,
+  //     });
+  //   }
 
-    this.switchEnd = true;
-  }
+  //   this.switchEnd = true;
+  // }
 
-  async pay(tradeNo, payMode) {
-    let equipmentInfo = store.getState().equipmentInfo;
-    let cart = store.getState().cart;
-    let payInfo = {};
-    payInfo.orgId = equipmentInfo.equipmentGroupInfo.orgId;
-    payInfo.tradeNo = tradeNo;
-    payInfo.totalFee = cart.totalPrice;
-    payInfo.tradeType =
-      payMode === 'ali' ? TradeType.ALI_NATIVE : TradeType.WX_NATIVE;
-    payInfo.comment = '24小时自助药机-药品';
+  // async pay(tradeNo, payMode) {
+  //   let equipmentInfo = store.getState().equipmentInfo;
+  //   let cart = store.getState().cart;
+  //   let payInfo = {};
+  //   payInfo.orgId = equipmentInfo.equipmentGroupInfo.orgId;
+  //   payInfo.tradeNo = tradeNo;
+  //   payInfo.totalFee = cart.totalPrice;
+  //   payInfo.tradeType =
+  //     payMode === 'ali' ? TradeType.ALI_NATIVE : TradeType.WX_NATIVE;
+  //   payInfo.comment = '24小时自助药机-药品';
 
-    let res = null;
-    try {
-      res = await api.orderPay(payInfo);
-    } catch (e) {
-      console.error(e);
-    }
-    return res;
-  }
+  //   let res = null;
+  //   try {
+  //     res = await api.orderPay(payInfo);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  //   return res;
+  // }
 
   async getOrderPayStatus(tradeNo) {
     let res = await api.getOrderPayStatus(tradeNo);
