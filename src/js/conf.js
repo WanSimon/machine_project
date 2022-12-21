@@ -15,7 +15,7 @@ const Conf = {
   // resource_fdfs: 'http://121.36.246.250:10060/',
   resource_fdfs: 'http://192.168.101.71:1010/view/',
   debug: true,
-  payUrl: 'http://www.baidu.com',
+  payUrl: 'https://tonsil.cinyou.cn/api/v1/tonsil/order/qrCodeUrl',
   sign: {
     appId: '1', //equipment
     secretKey: 'xy123456',
