@@ -13,11 +13,13 @@ import CommonAlert from '../components/commonAlert';
 class replenishment extends Component {
   constructor(props) {
     super(props);
+    const {rowData} = this.props;
     this.state = {
       slotNoList: [],
       info: {},
       batchNumber: '',
       lockStock: '',
+      rowData,
       changedCount: '',
       upperLimit: '',
       flag: 'new',
@@ -37,6 +39,8 @@ class replenishment extends Component {
       showContradictAlert3: false,
       showContradictAlert4: false,
       showContradictAlert5: false,
+      showContradictAlert6: false,
+      disabled: false,
     };
   }
 
@@ -102,9 +106,10 @@ class replenishment extends Component {
     }
     console.info(
       '数据初始化-------',
-      detail.drugStockInfo.upperLimit,
-      detail.drugStockInfo.batchNumber,
-      detail.drugStockInfo.lockStock,
+      this.state.rowData,
+      // detail.drugStockInfo.upperLimit,
+      // detail.drugStockInfo.batchNumber,
+      // detail.drugStockInfo.lockStock,
     );
   }
 
@@ -126,6 +131,12 @@ class replenishment extends Component {
     let adminId = store.getState().adminData.adminId;
     let slotNo = slotNoList.join(',');
     if (this.state.flag === 'new') {
+      if (upperLimit.length === 0) {
+        this.setState({
+          showContradictAlert6: true,
+        });
+        return;
+      }
       console.info('flag---', this.state.flag);
       //Alert
       let thisProduct = batchNumberList.find((item) => {
@@ -167,6 +178,10 @@ class replenishment extends Component {
         return;
       }
 
+      this.setState({
+        disabled: true,
+      });
+
       //药道无药品，添加新的药品
       let saveProduct = await api.saveEquipmentProduct({
         equipmentId,
@@ -182,6 +197,7 @@ class replenishment extends Component {
       if (saveProduct.equipmentProductId) {
         this.setState({
           showAddNewDrugAlert: true,
+          disabled: false,
         });
       }
       console.info('saveEquipmentProduct----replenishment----', saveProduct);
@@ -213,6 +229,8 @@ class replenishment extends Component {
         return;
       }
 
+      this.setState({disabled: true});
+
       let res = await api
         .updateEStock({
           opType: 0,
@@ -239,6 +257,7 @@ class replenishment extends Component {
           if (res.status) {
             this.setState({
               showAddOldDrugAlert: true,
+              disabled: false,
             });
           }
         });
@@ -314,6 +333,11 @@ class replenishment extends Component {
     });
   }
 
+  hideContradictAlert6() {
+    this.setState({
+      showContradictAlert6: false,
+    });
+  }
   render() {
     const {type, productName, realStock} = this.state.info;
     const {
@@ -331,6 +355,7 @@ class replenishment extends Component {
       showContradictAlert3,
       showContradictAlert4,
       showContradictAlert5,
+      showContradictAlert6,
     } = this.state;
     return (
       <View style={{display: 'flex', justifyContent: 'space-around'}}>
@@ -652,6 +677,61 @@ class replenishment extends Component {
             }}
           />
 
+          <AwesomeAlert
+            show={showContradictAlert6}
+            showProgress={false}
+            title="初次上架商品,应当填写货道的最大容量,上架失败"
+            // message="I have a message for you!"
+            closeOnTouchOutside={true}
+            closeOnHardwareBackPress={false}
+            showCancelButton={false}
+            showConfirmButton={true}
+            // cancelText="No, cancel"
+            confirmText="确定"
+            confirmButtonColor="#DD6B55"
+            titleStyle={{
+              fontSize: p2dWidth(35),
+              // borderWidth: 2,
+              // borderColor: 'yellow',
+              textAlign: 'center',
+              // marginTop: p2dHeight(50),
+              marginTop: p2dHeight(20),
+              height: p2dHeight(100),
+              // lineHeight: p2dHeight(400),
+            }}
+            // alertContainerStyle={{//最大的
+            //   backgroundColor: 'red',
+            //   color: 'black',
+            //   borderColor: 'black',
+            //   borderWidth: 2,
+            // }}
+            overlayStyle={{
+              //灰影
+              height: '100%',
+            }}
+            confirmButtonTextStyle={{
+              fontSize: p2dWidth(30),
+              color: 'white',
+              lineHeight: p2dHeight(55),
+              textAlign: 'center',
+            }}
+            confirmButtonStyle={{
+              backgroundColor: $conf.theme,
+              width: p2dWidth(120),
+              height: p2dHeight(60),
+              marginTop: p2dHeight(50),
+            }}
+            contentContainerStyle={{
+              // borderColor: 'red',
+              // borderWidth: 2,
+              marginTop: -p2dHeight(300),
+              width: p2dWidth(500),
+              height: p2dHeight(300),
+            }}
+            onConfirmPressed={() => {
+              this.hideContradictAlert6();
+            }}
+          />
           {/* <AwesomeAlert
             show={showAddOldDrugAlert}
             showProgress={false}
@@ -814,7 +894,6 @@ class replenishment extends Component {
               this.hideOverageAlert();
             }}
           /> */}
-
           <View
             style={{
               display: 'flex',
@@ -830,7 +909,8 @@ class replenishment extends Component {
             </View>
             <View style={{marginLeft: p2dWidth(40), width: p2dWidth(420)}}>
               <Text style={{fontSize: p2dWidth(35)}}>
-                形式:{type === 1 ? '格子柜' : '推板'}
+                形式:
+                {type == null ? '无' : type == 1 ? '格子柜' : '推板'}
               </Text>
             </View>
           </View>
@@ -1095,7 +1175,7 @@ class replenishment extends Component {
               backgroundColor: this.state.changedCount ? $conf.theme : 'grey',
               width: p2dWidth(300),
             }}
-            disabled={!this.state.changedCount}
+            disabled={!this.state.changedCount || this.state.disabled}
             onPress={() => this.updateEStock()}>
             <Text
               style={{

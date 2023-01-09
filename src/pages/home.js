@@ -17,11 +17,11 @@ class home extends Component {
     super();
 
     // this.state = {
-    //   // addr: '',
-    //   // date: '',
-    //   // no: '',
-    //   // scaleValue: new Animated.Value(1),
-    //   // upgradeData: {},
+    // addr: '',
+    // date: '',
+    // no: '',
+    // scaleValue: new Animated.Value(1),
+    // upgradeData: {},
     // };
     this.clickTimer = null;
     this.clickIndex = 0;
@@ -39,11 +39,6 @@ class home extends Component {
     //   let nowDate = parseTime(new Date(), '{y}-{m}-{d}  {h}:{i}');
     //   this.setState({date: nowDate});
     // }, 60000);
-  }
-
-  changeText(val) {
-    this.setState({name: val});
-    console.info('---name---', val);
   }
 
   componentWillUnmount() {
@@ -148,77 +143,6 @@ class home extends Component {
             style={{width: p2dWidth(580), height: p2dWidth(720)}}
             source={require('../assets/buyMedBtn.png')}></Image>
         </TouchableOpacity>
-        {/* <TouchableOpacity
-          onPress={() => this.props.navigation.navigate('repertory')}>
-          <Text>查看库存</Text>
-        </TouchableOpacity> */}
-        {/* <TouchableOpacity
-          onPress={() => this.props.navigation.navigate('unshelve')}>
-          <Text>下架库存</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => this.props.navigation.navigate('replenishment')}>
-          <Text>补货</Text>
-        </TouchableOpacity> */}
-
-        {/* <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: p2dHeight(300),
-            left: p2dWidth(100),
-          }}
-          onPress={() => this.props.navigation.navigate('channel')}>
-          <Text>货道管理</Text>
-        </TouchableOpacity> */}
-        {/* <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: p2dHeight(400),
-            left: p2dWidth(100),
-          }}
-          onPress={() => this.props.navigation.navigate('admin')}>
-          <Text>管理员登录页面</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: p2dHeight(500),
-            left: p2dWidth(100),
-          }}
-          onPress={() => this.props.navigation.navigate('maintain')}>
-          <Text>维护模式</Text>
-        </TouchableOpacity> */}
-
-        {/* <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: p2dHeight(600),
-            left: p2dWidth(100),
-          }}
-          onPress={() => this.props.navigation.navigate('drugDetail')}>
-          <Text>药品详情</Text>
-        </TouchableOpacity> */}
-
-        {/* <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: p2dHeight(800),
-            left: p2dWidth(100),
-          }}
-          onPress={() => this.props.navigation.navigate('setting')}>
-          <Text>setting</Text>
-        </TouchableOpacity> */}
-
-        {/* <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: p2dHeight(900),
-            left: p2dWidth(100),
-          }}
-          onPress={() => this.setState({showAlert: true})}>
-          <Text>AlertButton{this.state}</Text>
-        </TouchableOpacity> */}
         <View
           style={{
             position: 'absolute',
@@ -246,6 +170,18 @@ class home extends Component {
           />
         </View> */}
 
+        {/* <TouchableOpacity
+          style={{
+            position: 'absolute',
+            left: p2dWidth(200),
+            bottom: p2dHeight(5),
+            width: p2dWidth(200),
+            height: p2dWidth(80),
+          }}
+          onPress={() => this.props.navigation.navigate('admin')}>
+          <Text style={{fontSize: p2dWidth(50), color: 'red'}}>admin</Text>
+        </TouchableOpacity> */}
+
         <TouchableOpacity
           style={{
             position: 'absolute',
@@ -255,6 +191,7 @@ class home extends Component {
             height: p2dWidth(80),
           }}
           onPress={() => this.addClick()}>
+          {/* <Text style={{fontSize: p2dWidth(50), color: 'red'}}> */}
           <Text style={{fontSize: p2dWidth(50), color: 'transparent'}}>
             设备维护
           </Text>

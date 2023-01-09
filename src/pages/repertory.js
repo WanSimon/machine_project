@@ -100,9 +100,6 @@ class repertory extends Component {
     let no = 1;
 
     console.info('-----channel-----', channel.slotProductListInfo);
-    // channel.slotProductListInfo.forEach((drug)=>{
-
-    // })
 
     channel.slotProductListInfo.forEach((drug) => {
       let temp = [];
@@ -268,6 +265,7 @@ class repertory extends Component {
                 this.state.tab === 'drug' ? 'rgba(0,191,206,0.7)' : '#fff',
             }}
             onPress={() => {
+              this.getDrugStock();
               this.switchTab('drug');
             }}>
             <Text

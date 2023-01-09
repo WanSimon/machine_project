@@ -45,11 +45,12 @@ class pay extends Component {
 
   async getOrderPayStatus(tradeNo) {
     let res = await api.getOrderPayStatus(tradeNo);
+    console.info('1111--------------开始轮询');
     //支付成功
     if (res.status === PayStatus.PS_SUCCESS) {
       //取药
       try {
-        await api.updateOrderStatus(this.state.orderId, OrderStatus.OS_Paied);
+        // await api.updateOrderStatus(this.state.orderId, OrderStatus.OS_Paied);
         console.debug('开始取药.');
         //todo 取药
         this.props.navigation.replace('wait');
@@ -61,7 +62,10 @@ class pay extends Component {
     else if (res.status === PayStatus.PS_Failed) {
       //todo
       console.info('支付失败.');
-    } else if (res.status === PayStatus.PS_NoPay) {
+    } else if (
+      res.status === PayStatus.PS_NoPay ||
+      res.status === PayStatus.PS_WAITING
+    ) {
       if (this.timer) {
         clearTimeout(this.timer);
       }

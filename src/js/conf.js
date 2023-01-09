@@ -17,7 +17,7 @@ const Conf = {
   debug: true,
   payUrl: 'https://tonsil.cinyou.cn/api/v1/tonsil/order/qrCodeUrl',
   sign: {
-    appId: '1', //equipment
+    appId: '1', //equipmen
     secretKey: 'xy123456',
   },
   //退款申请地址

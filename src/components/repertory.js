@@ -243,7 +243,9 @@ class Repertory extends Component {
             onPress={() => {
               let action = updateSlotNo(slotNoStr);
               store.dispatch(action);
-              this.props.navigation.navigate('replenishment');
+              this.props.navigation.navigate('replenishment', {
+                rowData: rowData,
+              });
               // this.getReplenishRowData(rowData);
               // this.setState({
               //   replenishmentRowData: rowData,
